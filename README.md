@@ -11,11 +11,11 @@ A **minimal**, clean data grid built with SvelteKit, Svelte 5 runes, and RevoGri
 
 ## Features
 
-✅ **Simple data grid** with 50 demo rows  
-✅ **Excel-like editing** with auto-calculation (`total = qty * price`)  
-✅ **Basic toolbar** - Add Row, Delete Selected, Clear All  
-✅ **Row selection** with multi-select  
-✅ **Clean, minimal code** - KISS principle
+**Simple data grid** with 50 demo rows  
+**Excel-like editing** with auto-calculation (`total = qty * price`)  
+**Basic toolbar** - Add Row, Delete Selected, Clear All  
+**Row selection** with multi-select  
+**Clean, minimal code** - KISS principle
 
 ## Quick Start
 
@@ -97,10 +97,6 @@ export function updateRow(item)
 - **Auto-calculation**: Total updates when Qty or Price changes
 - **Editable**: Click any cell to edit (except ID and Total)
 
-## Why This is Better
-
-❌ **Before**: 300+ lines per component, complex state management, too many features  
-✅ **After**: ~50 lines per component, simple reactive stores, core functionality only
 
 ### Code Comparison
 - **DataStore**: 200+ lines → **75 lines** (-62%)
