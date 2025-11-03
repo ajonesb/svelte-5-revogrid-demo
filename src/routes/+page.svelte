@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { getData, addRow, deleteSelected, clearAll, updateRow, getSelectedIds, getLoading, getError, loadData } from '$lib/stores/dataStore.svelte';
+	import { store, GRID_COLUMNS, addRow, deleteSelected, clearAll, updateRow, loadData } from '$lib/stores/dataStore.svelte';
 	import GridToolbar from '$lib/components/GridToolbar.svelte';
 	
 	// For SSR compatibility: Dynamic import
@@ -28,13 +28,7 @@
 		}
 	});
 
-	const columns = [
-		{ prop: 'id', name: 'ID', size: 80, readonly: true },
-		{ prop: 'name', name: 'Name', size: 150 },
-		{ prop: 'qty', name: 'Qty', size: 80 },
-		{ prop: 'price', name: 'Price', size: 100 },
-		{ prop: 'total', name: 'Total', size: 100, readonly: true }
-	];
+	const columns = GRID_COLUMNS;
 
 	function handleEdit(event: any) {
 		const { detail } = event;
@@ -47,10 +41,10 @@
 	}
 
 	// Svelte 5: Use $derived for reactive computations
-	const currentLoading = $derived(getLoading());
-	const currentError = $derived(getError());
-	const currentSelectedIds = $derived(getSelectedIds());
-	const currentData = $derived(getData());
+	const currentLoading = $derived(store.loading);
+	const currentError = $derived(store.error);
+	const currentSelectedIds = $derived(store.selectedIds);
+	const currentData = $derived(store.data);
 	const selectionCount = $derived(currentSelectedIds.size);
 </script>
 
