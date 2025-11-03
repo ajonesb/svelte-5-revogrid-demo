@@ -1,23 +1,50 @@
-# Simple Data Grid with SvelteKit
+# SvelteKit + RevoGrid Demo
 
-A **minimal**, clean data grid built with SvelteKit, Svelte 5 runes, and RevoGrid.
-
-## Tech Stack
-
-- **SvelteKit** + **Svelte 5** (runes) + **TypeScript**  
-- **TailwindCSS** + **shadcn-svelte** (minimal components)
-- **RevoGrid** for the data grid
-- **ESLint** + **Prettier** for code quality
+Minimal Excel-like data grid with **SvelteKit 5**, **RevoGrid**, and **clean service architecture**.
 
 ## Features
 
-**Simple data grid** with 50 demo rows  
-**Excel-like editing** with auto-calculation (`total = qty * price`)  
-**Basic toolbar** - Add Row, Delete Selected, Clear All  
-**Row selection** with multi-select  
-**Clean, minimal code** - KISS principle
+- **Real API data** from JSONPlaceholder
+- **Excel-like editing** with auto-calculations  
+- **CRUD operations** with API sync
+- **Loading states** and error handling
+- **Clean service layer** (SOLID principles)
+
+## Tech Stack
+
+**SvelteKit** + **Svelte 5** + **TypeScript** + **TailwindCSS** + **RevoGrid**
 
 ## Quick Start
+
+```bash
+pnpm install
+pnpm dev
+```
+
+## Service Architecture
+
+```
+src/lib/services/
+├── http.service.ts       # Generic HTTP operations
+├── items.api.service.ts  # Item-specific API calls  
+└── api.config.ts         # Configuration & types
+```
+
+## API Integration
+
+**Current:** Uses JSONPlaceholder demo API  
+**Your API:** Update `API_CONFIG.BASE_URL` and data mapping in `ItemsApiService`
+
+```typescript
+// Example: Adapt for your API
+const API_CONFIG = {
+  BASE_URL: 'https://your-api.com/api'
+};
+```
+
+---
+
+**Clean, minimal, production-ready.** 
 
 ```bash
 # Install dependencies
@@ -98,16 +125,6 @@ export function updateRow(item)
 - **Editable**: Click any cell to edit (except ID and Total)
 
 
-### Code Comparison
-- **DataStore**: 200+ lines → **75 lines** (-62%)
-- **GridToolbar**: 300+ lines → **15 lines** (-95%)  
-- **Main Page**: 200+ lines → **45 lines** (-77%)
-- **Total**: ~800 lines → **150 lines** (-81%)
-
-### Build Performance
-- **Bundle size**: Significantly smaller
-- **Build time**: Much faster
-- **Dependencies**: Minimal (no XLSX, no complex dialogs)
 
 ## Development
 

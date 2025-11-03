@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { data, addRow, deleteSelected, clearAll, updateRow, selectedIds } from '$lib/stores/dataStore';
+	import { data, addRow, deleteSelected, clearAll, updateRow, selectedIds, loadData, loading, error } from '$lib/stores/dataStore';
 	import GridToolbar from '$lib/components/GridToolbar.svelte';
 	
 	// Import RevoGrid dynamically only on client side
@@ -10,16 +10,18 @@
 
 	onMount(async () => {
 		if (browser) {
+			// Load RevoGrid component
 			try {
 				const module = await import('@revolist/svelte-datagrid');
-				// Try different possible exports
 				RevoGrid = (module as any).default || (module as any).RevoGrid || module;
 				console.log('RevoGrid loaded:', RevoGrid);
-				mounted = true;
 			} catch (error) {
 				console.error('Failed to load RevoGrid:', error);
-				mounted = true; // Show error state
 			}
+			
+			// Load data from API
+			await loadData();
+			mounted = true;
 		}
 	});
 
@@ -58,7 +60,26 @@
 	/>
 	
 	<div class="flex-1">
-		{#if mounted && RevoGrid}
+		{#if $error}
+			<div class="flex items-center justify-center h-full">
+				<div class="text-center">
+					<p class="text-red-500 mb-4">Error: {$error}</p>
+					<button 
+						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+						onclick={() => loadData()}
+					>
+						Retry
+					</button>
+				</div>
+			</div>
+		{:else if $loading}
+			<div class="flex items-center justify-center h-full">
+				<div class="text-center">
+					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+					<p>Loading data from API...</p>
+				</div>
+			</div>
+		{:else if mounted && RevoGrid}
 			<svelte:component 
 				this={RevoGrid}
 				source={$data}
