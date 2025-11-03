@@ -1,27 +1,30 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { data, addRow, deleteSelected, clearAll, updateRow, selectedIds, loadData, loading, error } from '$lib/stores/dataStore';
+	import { getData, addRow, deleteSelected, clearAll, updateRow, getSelectedIds, getLoading, getError, loadData } from '$lib/stores/dataStore.svelte';
 	import GridToolbar from '$lib/components/GridToolbar.svelte';
 	
-	// Import RevoGrid dynamically only on client side
-	let RevoGrid: any = null;
-	let mounted = false;
+	// For SSR compatibility: Dynamic import
+	let RevoGrid = $state<any>(null);
+	let mounted = $state(false);
 
 	onMount(async () => {
+		console.log('Component mounting...');
 		if (browser) {
-			// Load RevoGrid component
+			// STEP 1: Load the RevoGrid component
 			try {
-				const module = await import('@revolist/svelte-datagrid');
-				RevoGrid = (module as any).default || (module as any).RevoGrid || module;
-				console.log('RevoGrid loaded:', RevoGrid);
+				const { RevoGrid: RevoGridComponent } = await import('@revolist/svelte-datagrid');
+				RevoGrid = RevoGridComponent;
+				console.log('RevoGrid component loaded:', typeof RevoGrid);
 			} catch (error) {
 				console.error('Failed to load RevoGrid:', error);
 			}
 			
-			// Load data from API
+			// STEP 2: Load data from API
+			console.log('Loading data...');
 			await loadData();
 			mounted = true;
+			console.log('Component fully mounted');
 		}
 	});
 
@@ -43,8 +46,12 @@
 		// Selection is handled automatically by the store
 	}
 
-	// Derive selection count from selectedIds store
-	$: selectionCount = $selectedIds.size;
+	// Svelte 5: Use $derived for reactive computations
+	const currentLoading = $derived(getLoading());
+	const currentError = $derived(getError());
+	const currentSelectedIds = $derived(getSelectedIds());
+	const currentData = $derived(getData());
+	const selectionCount = $derived(currentSelectedIds.size);
 </script>
 
 <svelte:head>
@@ -60,10 +67,11 @@
 	/>
 	
 	<div class="flex-1">
-		{#if $error}
+		<!-- ERROR STATE: Show if API fails -->
+		{#if currentError}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
-					<p class="text-red-500 mb-4">Error: {$error}</p>
+					<p class="text-red-500 mb-4">Error: {currentError}</p>
 					<button 
 						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
 						onclick={() => loadData()}
@@ -72,17 +80,19 @@
 					</button>
 				</div>
 			</div>
-		{:else if $loading}
+		<!-- LOADING STATE: Show while fetching data -->
+		{:else if currentLoading}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
 					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
 					<p>Loading data from API...</p>
 				</div>
 			</div>
+		<!-- SUCCESS STATE: Show the actual grid -->
 		{:else if mounted && RevoGrid}
-			<svelte:component 
-				this={RevoGrid}
-				source={$data}
+			<!-- This is where the magic happens! -->
+			<RevoGrid 
+				source={currentData}
 				{columns}
 				range
 				readonly={false}
@@ -90,10 +100,12 @@
 				on:aftersourceset={handleSelection}
 				class="h-full"
 			/>
+		<!-- COMPONENT FAILED: RevoGrid didn't load -->
 		{:else if mounted && !RevoGrid}
 			<div class="flex items-center justify-center h-full">
 				<p class="text-red-500">Failed to load data grid component</p>
 			</div>
+		<!-- INITIAL STATE: Before anything loads -->
 		{:else}
 			<div class="flex items-center justify-center h-full">
 				<p>Loading grid...</p>

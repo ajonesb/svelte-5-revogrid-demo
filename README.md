@@ -1,61 +1,25 @@
 # SvelteKit + RevoGrid Demo
 
-Minimal Excel-like data grid with **SvelteKit 5**, **RevoGrid**, and **clean service architecture**.
+Minimal Excel-like data grid with **SvelteKit 5**, **RevoGrid**, and real API data.
 
 ## Features
 
-- **Real API data** from JSONPlaceholder
-- **Excel-like editing** with auto-calculations  
-- **CRUD operations** with API sync
-- **Loading states** and error handling
-- **Clean service layer** (SOLID principles)
-
-## Tech Stack
-
-**SvelteKit** + **Svelte 5** + **TypeScript** + **TailwindCSS** + **RevoGrid**
+- Excel-like editing with auto-calculations  
+- Real API data from JSONPlaceholder
+- Add, edit, delete rows
+- Loading states and error handling
+- Clean service architecture (SOLID principles)
 
 ## Quick Start
 
 ```bash
 pnpm install
-pnpm dev
-```
-
-## Service Architecture
-
-```
-src/lib/services/
-├── http.service.ts       # Generic HTTP operations
-├── items.api.service.ts  # Item-specific API calls  
-└── api.config.ts         # Configuration & types
-```
-
-## API Integration
-
-**Current:** Uses JSONPlaceholder demo API  
-**Your API:** Update `API_CONFIG.BASE_URL` and data mapping in `ItemsApiService`
-
-```typescript
-// Example: Adapt for your API
-const API_CONFIG = {
-  BASE_URL: 'https://your-api.com/api'
-};
-```
-
----
-
-**Clean, minimal, production-ready.** 
-
-```bash
-# Install dependencies
-pnpm install
-
-# Run development server
 pnpm dev  # → http://localhost:5173
-
-# Build for production
-pnpm build
 ```
+
+## Tech Stack
+
+**SvelteKit 5** + **RevoGrid** + **TypeScript** + **TailwindCSS**
 
 ## Project Structure
 
@@ -63,22 +27,23 @@ pnpm build
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── ui/button/           # Simple shadcn button
-│   │   └── GridToolbar.svelte   # 3-button toolbar
-│   ├── stores/
-│   │   └── dataStore.ts         # Minimal data management
-│   └── utils.ts                 # CN helper
+│   │   ├── ui/button/           # shadcn-svelte button
+│   │   └── GridToolbar.svelte   # Add/Delete/Clear buttons
+│   ├── services/
+│   │   ├── http.service.ts      # Generic HTTP client
+│   │   ├── items.api.service.ts # API calls & data mapping
+│   │   └── api.config.ts        # API configuration
+│   └── stores/
+│       └── dataStore.ts         # State management
 ├── routes/
-│   ├── +layout.svelte           # Simple layout
-│   └── +page.svelte             # Grid + toolbar (50 lines)
+│   └── +page.svelte             # Main grid component
 └── app.css                      # Tailwind styles
 ```
 
 ## Key Components
 
-### DataStore (`dataStore.ts`) - 75 lines
+### Data Store (`dataStore.ts`)
 ```typescript
-// Simple data type
 interface Item {
   id: number;
   name: string;
@@ -87,64 +52,56 @@ interface Item {
   total: number; // auto-calculated
 }
 
-// Basic functions
-export function addRow()
-export function deleteSelected()
-export function clearAll()
-export function updateRow(item)
+// Functions: addRow, deleteSelected, clearAll, updateRow
 ```
 
-### GridToolbar (`GridToolbar.svelte`) - 15 lines
-```svelte
-<div class="flex gap-2 p-4 border-b">
-  <Button onclick={onAdd}>Add Row</Button>
-  <Button onclick={onDelete} disabled={selectedCount === 0}>
-    Delete ({selectedCount})
-  </Button>
-  <Button onclick={onClear}>Clear All</Button>
-</div>
+### Main Grid (`+page.svelte`)
+- Dynamic RevoGrid import (SSR compatibility)
+- Error states and loading indicators
+- Real-time data updates
+
+## Customize for Your API
+
+1. **Update API config:**
+```typescript
+// src/lib/services/api.config.ts
+export const API_CONFIG = {
+  BASE_URL: 'https://your-api.com/api',
+  ENDPOINTS: { ITEMS: '/your-endpoint' }
+};
 ```
 
-### Main Page (`+page.svelte`) - 45 lines
-```svelte
-<GridToolbar {...toolbarProps} />
-<RevoGrid 
-  source={$data} 
-  columns={columns}
-  editable={true}
-  on:afterEdit={handleEdit}
-  on:selectionChanged={handleSelection}
-/>
+2. **Map your data structure:**
+```typescript
+// src/lib/services/items.api.service.ts
+private transformToItems(apiData: YourApiType[]): Item[] {
+  return apiData.map(item => ({
+    id: item.your_id_field,
+    name: item.your_name_field,
+    qty: item.your_quantity_field,
+    price: item.your_price_field,
+    total: item.your_quantity_field * item.your_price_field
+  }));
+}
 ```
 
-## Demo Data
-
-- **50 rows** of sample data
-- **5 columns**: ID, Name, Qty, Price, Total
-- **Auto-calculation**: Total updates when Qty or Price changes
-- **Editable**: Click any cell to edit (except ID and Total)
-
-
+3. **Add authentication (if needed):**
+```typescript
+// src/lib/services/http.service.ts
+const headers = {
+  'Authorization': `Bearer ${token}`,
+  'Content-Type': 'application/json'
+};
+```
 
 ## Development
 
 ```bash
-# Available scripts
 pnpm dev        # Development server
 pnpm build      # Production build  
 pnpm preview    # Preview build
-pnpm lint       # ESLint check
-pnpm format     # Prettier format
 ```
-
-## Principles Applied
-
-- **KISS**: Keep It Simple, Stupid
-- **DRY**: Don't Repeat Yourself  
-- **SOLID**: Single Responsibility Principle
-- **Minimal**: Only essential features
-- **Clean**: Readable, maintainable code
 
 ---
 
-**Perfect for**: Learning RevoGrid, prototyping, simple data management demos
+**Perfect for**: Learning RevoGrid, prototyping, data management demos

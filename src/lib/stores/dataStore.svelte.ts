@@ -1,4 +1,3 @@
-import { writable, derived } from 'svelte/store';
 import { itemsApiService, APIError } from '../services';
 
 // Simple data type
@@ -34,38 +33,52 @@ function generateFallbackData(): Item[] {
 	});
 }
 
-// State stores - Clean separation of concerns
-export const rows = writable<Item[]>([]);
-export const selectedIds = writable<Set<number>>(new Set());
-export const loading = writable<boolean>(false);
-export const error = writable<string | null>(null);
+// Svelte 5 State - Using runes instead of stores
+let rows = $state<Item[]>([]);
+let selectedIds = $state<Set<number>>(new Set());
+let loading = $state<boolean>(false);
+let error = $state<string | null>(null);
 
-// Derived stores for computed values
-export const data = derived(rows, ($rows) => 
-	$rows.map(row => ({
+// Derived values using $derived rune
+const data = $derived(
+	rows.map(row => ({
 		...row,
 		total: row.qty * row.price
 	}))
 );
 
+// Export reactive getters
+export const getData = () => data;
+export const getRows = () => rows;
+export const getSelectedIds = () => selectedIds;
+export const getLoading = () => loading;
+export const getError = () => error;
+
 // Action functions using service layer - Clean, SOLID implementation
 export async function loadData() {
-	loading.set(true);
-	error.set(null);
+	console.log('Starting data load...');
+	loading = true;
+	error = null;
 	
 	try {
+		console.log('Calling itemsApiService.loadItems()...');
 		const items = await itemsApiService.loadItems();
-		rows.set(items);
+		console.log('Data loaded successfully:', items.length, 'items');
+		rows = items;
 	} catch (err) {
+		console.error('API Error:', err);
 		const errorMessage = err instanceof APIError 
 			? err.message 
 			: 'Failed to load data from server';
 		
-		error.set(errorMessage);
+		error = errorMessage;
 		// Fallback to demo data if API fails
-		rows.set(generateFallbackData());
+		const fallbackData = generateFallbackData();
+		console.log('Using fallback data:', fallbackData.length, 'items');
+		rows = fallbackData;
 	} finally {
-		loading.set(false);
+		loading = false;
+		console.log('Data load complete');
 	}
 }
 
@@ -79,79 +92,69 @@ export async function addRow() {
 
 	try {
 		const savedItem = await itemsApiService.createItem(newItem);
-		rows.update($rows => [...$rows, savedItem]);
+		rows = [...rows, savedItem];
 	} catch (err) {
 		const errorMessage = err instanceof APIError 
 			? err.message 
 			: 'Failed to add item';
 		
-		error.set(errorMessage);
+		error = errorMessage;
 		
 		// Fallback: add locally for demo
-		rows.update($rows => {
-			const newId = Math.max(...$rows.map(r => r.id), 0) + 1;
-			return [...$rows, { ...newItem, id: newId, total: newItem.qty * newItem.price }];
-		});
+		const newId = Math.max(...rows.map(r => r.id), 0) + 1;
+		rows = [...rows, { ...newItem, id: newId, total: newItem.qty * newItem.price }];
 	}
 }
 
 export async function deleteSelected() {
-	let selected: Set<number> = new Set();
-	selectedIds.subscribe(s => selected = s)();
+	const selected = selectedIds;
 	
 	if (selected.size === 0) return;
 	
 	try {
 		await itemsApiService.deleteItems(Array.from(selected));
-		rows.update($rows => $rows.filter(row => !selected.has(row.id)));
-		selectedIds.set(new Set());
+		rows = rows.filter(row => !selected.has(row.id));
+		selectedIds = new Set();
 	} catch (err) {
 		const errorMessage = err instanceof APIError 
 			? err.message 
 			: 'Failed to delete items';
 		
-		error.set(errorMessage);
+		error = errorMessage;
 	}
 }
 
 export async function clearAll() {
 	try {
-		// Get current items and delete them
-		let currentRows: Item[] = [];
-		rows.subscribe(r => currentRows = r)();
-		
-		if (currentRows.length > 0) {
-			const ids = currentRows.map(item => item.id);
+		// In a real app, you might call API to delete all items
+		if (rows.length > 0) {
+			const ids = rows.map(item => item.id);
 			await itemsApiService.deleteItems(ids);
 		}
 		
-		rows.set([]);
-		selectedIds.set(new Set());
+		rows = [];
+		selectedIds = new Set();
 	} catch (err) {
 		const errorMessage = err instanceof APIError 
 			? err.message 
 			: 'Failed to clear all items';
 		
-		error.set(errorMessage);
+		error = errorMessage;
 	}
 }
 
 export async function updateRow(updatedRow: Item) {
 	try {
 		const savedItem = await itemsApiService.updateItem(updatedRow);
-		rows.update($rows => 
-			$rows.map(row => row.id === savedItem.id ? savedItem : row)
-		);
+		rows = rows.map(row => row.id === savedItem.id ? savedItem : row);
 	} catch (err) {
 		const errorMessage = err instanceof APIError 
 			? err.message 
 			: 'Failed to update item';
 		
-		error.set(errorMessage);
+		error = errorMessage;
 		
 		// Fallback: update locally for demo
-		rows.update($rows => 
-			$rows.map(row => row.id === updatedRow.id ? updatedRow : row)
-		);
+		rows = rows.map(row => row.id === updatedRow.id ? updatedRow : row);
 	}
 }

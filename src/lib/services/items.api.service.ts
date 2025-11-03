@@ -1,4 +1,4 @@
-import type { Item } from '../stores/dataStore';
+import type { Item } from '../stores/dataStore.svelte';
 import { httpService } from './http.service';
 import { API_CONFIG } from './api.config';
 
