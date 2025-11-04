@@ -67,13 +67,6 @@ src/
 ### Tab Navigation
 - Three tabs: Estimate List, Information Setup, Bid Item Setup
 - Centralized state management via `tabStore`
-- Automatic data switching based on active tab
-
-###  Autocomplete (Bid Item Setup)
-- **Bid Item column**: Dropdown with predefined construction items
-- **Unit column**: Dropdown with measurement units (LS, LF, CY, etc.)
-- Uses `@revolist/revogrid-column-select` plugin
-- Clean implementation in `DataGrid.svelte`
 
 ### CRUD Operations
 - **Add**: Add new rows to current table
@@ -81,7 +74,7 @@ src/
 - **Edit**: Inline editing with autocomplete support
 - **Clear**: Clear all data from current table
 
-### ✅ Data Management
+### Data Management
 - Loading states with spinners
 - Error handling with retry
 - Optimistic updates
