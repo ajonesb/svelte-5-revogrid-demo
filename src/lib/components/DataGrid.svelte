@@ -12,16 +12,28 @@
 	}
 
 	let { data, columns, onEdit, onSourceSet }: Props = $props();
-	let RevoGrid: any = null;
+	let RevoGrid: any = $state(null);
 	let mounted = $state(false);
 
 	onMount(async () => {
 		if (browser) {
-			// @ts-expect-error - Module resolution issue with svelte-datagrid v4.14.0
-			const module = await import('@revolist/svelte-datagrid');
-			RevoGrid = module.RevoGrid || module.default;
-			mounted = true;
-			console.log('[GRID INIT] Grid mounted');
+			try {
+				// @ts-expect-error - Module resolution issue with svelte-datagrid v4.14.0
+				const module = await import('@revolist/svelte-datagrid');
+				// Try multiple ways to get the component
+				RevoGrid = module.RevoGrid || module.default || module;
+				
+				// Check if it's a valid function/component
+				if (typeof RevoGrid !== 'function') {
+					console.error('[GRID INIT] Invalid RevoGrid component:', module);
+					return;
+				}
+				
+				mounted = true;
+				console.log('[GRID INIT] Grid mounted successfully');
+			} catch (error) {
+				console.error('[GRID INIT] Failed to load RevoGrid:', error);
+			}
 		}
 	});
 

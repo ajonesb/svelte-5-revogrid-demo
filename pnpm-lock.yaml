@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@revolist/svelte-datagrid':
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: ^4.19.4
+        version: 4.19.4
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -335,11 +335,11 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
-  '@revolist/revogrid@4.14.0':
-    resolution: {integrity: sha512-0N1y8fWSCmXNWweoQokfpYKGGi1SNQVXM2V2IvvoSjD2Tuq8swTm6CtoAFJc9jmTgib39tP80tjwGxFIQLwV/A==}
+  '@revolist/revogrid@4.19.4':
+    resolution: {integrity: sha512-lt/MZcpZhmxwKWpkqO/cuWfO6wZSOJ/Rg4KRkB85ME9Nty2h6Y1gd/fYIFvANDTj4BcrrfbBp9r24wB1GZiB6Q==}
 
-  '@revolist/svelte-datagrid@4.14.0':
-    resolution: {integrity: sha512-V4AMhyQP7Ja6Ok+xeQxlArg7uQXlK7bhDT8/uHL3B/eG6NMJzkQ//TL2eYlY30g3OBYOAb0lC/REvAmfyIKYlw==}
+  '@revolist/svelte-datagrid@4.19.4':
+    resolution: {integrity: sha512-vyPcqoW6DeuB8Fvd0A29eMP72fwOGHPQJ/ZmezBhfATxy4WZv163efCanm0wNpjqXr2J6xH8D2hFu34Rt+4ExA==}
 
   '@rollup/rollup-android-arm-eabi@4.52.5':
     resolution: {integrity: sha512-8c1vW4ocv3UOMp9K+gToY5zL2XiiVw3k7f1ksf4yO1FlDFQ1C2u72iACFnSOceJFsWskc2WZNqeRhFRPzv+wtQ==}
@@ -1644,11 +1644,11 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@revolist/revogrid@4.14.0': {}
+  '@revolist/revogrid@4.19.4': {}
 
-  '@revolist/svelte-datagrid@4.14.0':
+  '@revolist/svelte-datagrid@4.19.4':
     dependencies:
-      '@revolist/revogrid': 4.14.0
+      '@revolist/revogrid': 4.19.4
 
   '@rollup/rollup-android-arm-eabi@4.52.5':
     optional: true
