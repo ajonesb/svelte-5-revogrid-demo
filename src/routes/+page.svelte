@@ -50,39 +50,82 @@
 
 	// Actions
 	function handleAdd() {
+		console.log('[ACTION] Adding new row to:', activeTab);
 		if (activeTab === 'estimate-list') addEstimate();
 		else if (activeTab === 'information-setup') addInfoSetupItem();
 		else addBidItem();
 	}
 
 	function handleDelete() {
+		console.log('[ACTION] Deleting selected rows from:', activeTab, 'Count:', selectionCount);
 		currentStore.deleteSelected();
 	}
 
 	function handleClear() {
+		console.log('[ACTION] Clearing all data from:', activeTab);
 		currentStore.clearAll();
 	}
 
 	function handleEdit(event: any) {
+		console.log('[PAGE EDIT] Edit event received:', {
+			tab: activeTab,
+			detail: event.detail,
+			models: event.detail?.models
+		});
+
 		const models = event.detail?.models as Record<number, Partial<any>> | undefined;
 		if (models) {
 			const updatedData = [...currentData];
 			for (const [indexStr, patch] of Object.entries(models)) {
-				updatedData[Number(indexStr)] = { ...updatedData[Number(indexStr)], ...patch };
+				const rowIndex = Number(indexStr);
+				const oldRow = updatedData[rowIndex];
+				updatedData[rowIndex] = { ...oldRow, ...patch };
+				
+				console.log('[ROW UPDATE]', {
+					tab: activeTab,
+					rowIndex,
+					oldValues: oldRow,
+					changes: patch,
+					newValues: updatedData[rowIndex]
+				});
 			}
 			currentStore.setData(updatedData as any);
 		}
 	}
 
+	function handleCellChange(event: any) {
+		console.log('[CELL CHANGE]', {
+			tab: activeTab,
+			detail: event.detail,
+			timestamp: new Date().toISOString()
+		});
+	}
+
 	function handleSourceSet(event: CustomEvent<any>) {
+		console.log(' [SOURCE SET] Data updated:', {
+			tab: activeTab,
+			rowCount: event.detail.source?.length
+		});
 		currentStore.setData(event.detail.source);
 	}
 
 	async function handleReload() {
+		console.log(' [RELOAD] Reloading data for:', activeTab);
 		if (activeTab === 'estimate-list') await loadEstimates();
 		else if (activeTab === 'information-setup') await loadInfoSetup();
 		else await loadBidItems();
 	}
+
+	// Track tab changes
+	$effect(() => {
+		console.log('[TAB CHANGE] Active tab:', activeTab, 'Row count:', currentData.length);
+		console.log('[DATA PREVIEW]', {
+			tab: activeTab,
+			dataLength: currentData.length,
+			firstRow: currentData[0],
+			columns: currentColumns.map(c => c.prop)
+		});
+	});
 </script>
 
 <svelte:head>
@@ -119,7 +162,13 @@
 				</div>
 			</div>
 		{:else}
-			<DataGrid data={currentData} columns={currentColumns} onEdit={handleEdit} onSourceSet={handleSourceSet} />
+			<DataGrid 
+				data={currentData} 
+				columns={currentColumns} 
+				onEdit={handleEdit} 
+				onSourceSet={handleSourceSet}
+				onCellChange={handleCellChange}
+			/>
 		{/if}
 	</div>
 </div>

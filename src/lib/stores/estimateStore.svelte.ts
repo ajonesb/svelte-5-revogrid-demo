@@ -44,9 +44,13 @@ export async function loadEstimates() {
 			createdDate: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
 		}));
 		store.setData(estimates);
+		console.log('[ESTIMATE STORE] Loaded', estimates.length, 'estimates', estimates);
 	} catch (err) {
+		console.error('[ESTIMATE STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load estimates'));
-		store.setData(generateFallbackEstimates());
+		const fallback = generateFallbackEstimates();
+		store.setData(fallback);
+		console.log('[ESTIMATE STORE] Using fallback data:', fallback.length, 'items');
 	} finally {
 		store.setLoading(false);
 	}

@@ -38,9 +38,13 @@ export async function loadInfoSetup() {
 			required: i % 2 === 0
 		}));
 		store.setData(infoItems);
+		console.log('[INFO SETUP STORE] Loaded', infoItems.length, 'items', infoItems);
 	} catch (err) {
+		console.error('[INFO SETUP STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load information setup'));
-		store.setData(generateFallbackInfoSetup());
+		const fallback = generateFallbackInfoSetup();
+		store.setData(fallback);
+		console.log('[INFO SETUP STORE] Using fallback data:', fallback.length, 'items');
 	} finally {
 		store.setLoading(false);
 	}

@@ -59,18 +59,14 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 	{
 		prop: 'bidItem',
 		name: 'Bid Item',
-		size: 200,
-		columnType: 'select',
-		source: BID_ITEM_OPTIONS
+		size: 200
 	},
 	{ prop: 'description', name: 'Description', size: 300 },
 	{ prop: 'bidQuantity', name: 'Bid Quantity', size: 120, columnType: 'numeric' },
 	{
 		prop: 'unit',
 		name: 'Unit',
-		size: 80,
-		columnType: 'select',
-		source: UNIT_OPTIONS
+		size: 80
 	},
 	{ prop: 'takeoffQuantity', name: 'Takeoff Quantity', size: 150, columnType: 'numeric' },
 	{ prop: 'clientNo', name: 'Client #', size: 100 }
@@ -95,10 +91,13 @@ export async function loadBidItems() {
 			clientNo: String(10 + i * 10)
 		}));
 		store.setData(bidItems);
+		console.log('[BID ITEM STORE] Loaded', bidItems.length, 'bid items', bidItems);
 	} catch (err) {
+		console.error('[BID ITEM STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load bid items'));
-		// Fallback data
-		store.setData(generateFallbackBidItems());
+		const fallback = generateFallbackBidItems();
+		store.setData(fallback);
+		console.log('[BID ITEM STORE] Using fallback data:', fallback.length, 'items');
 	} finally {
 		store.setLoading(false);
 	}
