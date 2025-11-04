@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { RevoGrid } from '@revolist/svelte-datagrid';
-	import type { ColumnRegular } from '@revolist/svelte-datagrid';
+	import { browser } from '$app/environment';
+	import type { ColumnRegular } from '@revolist/revogrid';
 
 	interface Props {
 		data: any[];
@@ -12,11 +12,17 @@
 	}
 
 	let { data, columns, onEdit, onSourceSet }: Props = $props();
+	let RevoGrid: any = null;
 	let mounted = $state(false);
 
-	onMount(() => {
-		mounted = true;
-		console.log('[GRID INIT] Grid mounted');
+	onMount(async () => {
+		if (browser) {
+			// @ts-expect-error - Module resolution issue with svelte-datagrid v4.14.0
+			const module = await import('@revolist/svelte-datagrid');
+			RevoGrid = module.RevoGrid || module.default;
+			mounted = true;
+			console.log('[GRID INIT] Grid mounted');
+		}
 	});
 
 	function handleAfterEdit(event: any) {
@@ -30,8 +36,9 @@
 	}
 </script>
 
-{#if mounted}
-	<RevoGrid
+{#if mounted && RevoGrid}
+	<svelte:component
+		this={RevoGrid}
 		source={data}
 		columns={columns}
 		on:afteredit={handleAfterEdit}
