@@ -57,7 +57,7 @@ export class HttpService {
 	private async request<T>(url: string, options: RequestInit): Promise<T> {
 		try {
 			const response = await fetch(url, options);
-			
+
 			if (!response.ok) {
 				throw new APIError(
 					`HTTP ${response.status}: ${response.statusText}`,
@@ -71,13 +71,15 @@ export class HttpService {
 			if (contentType && contentType.includes('application/json')) {
 				return response.json();
 			}
-			
+
 			return {} as T;
 		} catch (error) {
 			if (error instanceof APIError) {
 				throw error;
 			}
-			throw new APIError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new APIError(
+				`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+			);
 		}
 	}
 
@@ -86,13 +88,13 @@ export class HttpService {
 	 */
 	private buildUrl(endpoint: string, params?: Record<string, string>): string {
 		const url = new URL(endpoint, this.baseUrl);
-		
+
 		if (params) {
 			Object.entries(params).forEach(([key, value]) => {
 				url.searchParams.append(key, value);
 			});
 		}
-		
+
 		return url.toString();
 	}
 }

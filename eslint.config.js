@@ -12,12 +12,26 @@ export default [
 			parserOptions: {
 				ecmaVersion: 2022,
 				sourceType: 'module'
+			},
+			globals: {
+				console: 'readonly',
+				setTimeout: 'readonly',
+				fetch: 'readonly',
+				URL: 'readonly',
+				RequestInit: 'readonly',
+				CustomEvent: 'readonly',
+				MouseEvent: 'readonly',
+				$state: 'readonly',
+				$derived: 'readonly',
+				Response: 'readonly'
 			}
 		},
 		plugins: {
 			'@typescript-eslint': tseslint
 		},
 		rules: {
+			// Prefer TS rule over base
+			'no-unused-vars': 'off',
 			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
 			'@typescript-eslint/no-explicit-any': 'warn'
 		}
@@ -30,7 +44,17 @@ export default [
 				parser: tsparser,
 				ecmaVersion: 2022,
 				sourceType: 'module'
+			},
+			globals: {
+				console: 'readonly',
+				$state: 'readonly',
+				$derived: 'readonly',
+				CustomEvent: 'readonly'
 			}
+		},
+		rules: {
+			'no-unused-vars': 'off',
+			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	},
 	{

@@ -35,12 +35,14 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"@revolist/revogrid-column-select": "^3.1.9",
 		"@revolist/svelte-datagrid": "^4.19.4",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"lucide-svelte": "^0.552.0",
 		"shadcn-svelte": "^1.0.10",
 		"tailwind-merge": "^3.3.1",
+		"tailwind-variants": "^3.1.1",
 		"xlsx": "^0.18.5"
 	}
 }
