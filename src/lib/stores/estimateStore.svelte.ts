@@ -22,7 +22,7 @@ export const ESTIMATE_COLUMNS: ColumnRegular[] = [
 	{ prop: 'projectName', name: 'Project Name', size: 300 },
 	{ prop: 'client', name: 'Client', size: 200 },
 	{ prop: 'status', name: 'Status', size: 120 },
-	{ prop: 'total', name: 'Total', size: 120, columnType: 'numeric' },
+	{ prop: 'total', name: 'Total', size: 120 },
 	{ prop: 'createdDate', name: 'Created', size: 120 }
 ];
 

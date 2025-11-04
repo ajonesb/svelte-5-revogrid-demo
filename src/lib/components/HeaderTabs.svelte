@@ -8,15 +8,15 @@
 	}
 </script>
 
-<nav class="w-full border-b bg-background">
-	<ul class="mx-auto flex w-full max-w-[1200px] items-center gap-2 px-2 py-2">
+<nav class="w-full bg-white border-b">
+	<ul class="flex items-center gap-1 px-6">
 		{#each TABS as tab}
 			<li>
 				<button
-					class="rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+					class="relative px-6 py-3 text-sm font-medium transition-colors rounded-t-lg border-2 border-b-0
             {activeTab === tab.id
-						? 'bg-primary text-primary-foreground'
-						: 'hover:bg-accent hover:text-accent-foreground'}"
+						? 'text-blue-600 border-blue-600 bg-white -mb-[2px]'
+						: 'text-gray-600 border-transparent hover:text-gray-900 bg-gray-50/50'}"
 					aria-current={activeTab === tab.id ? 'page' : undefined}
 					onclick={() => selectTab(tab.id)}
 				>

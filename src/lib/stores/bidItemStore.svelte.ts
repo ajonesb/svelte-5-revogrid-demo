@@ -62,13 +62,13 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		size: 200
 	},
 	{ prop: 'description', name: 'Description', size: 300 },
-	{ prop: 'bidQuantity', name: 'Bid Quantity', size: 120, columnType: 'numeric' },
+	{ prop: 'bidQuantity', name: 'Bid Quantity', size: 120 },
 	{
 		prop: 'unit',
 		name: 'Unit',
 		size: 80
 	},
-	{ prop: 'takeoffQuantity', name: 'Takeoff Quantity', size: 150, columnType: 'numeric' },
+	{ prop: 'takeoffQuantity', name: 'Takeoff Quantity', size: 150 },
 	{ prop: 'clientNo', name: 'Client #', size: 100 }
 ];
 
