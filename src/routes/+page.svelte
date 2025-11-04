@@ -19,7 +19,6 @@
 		addBidItem,
 		BID_ITEM_COLUMNS
 	} from '$lib/stores/bidItemStore.svelte';
-	import GridToolbar from '$lib/components/GridToolbar.svelte';
 	import DataGrid from '$lib/components/DataGrid.svelte';
 
 	onMount(async () => {
@@ -69,27 +68,68 @@
 	function handleEdit(event: any) {
 		console.log('[PAGE EDIT] Edit event received:', {
 			tab: activeTab,
-			detail: event.detail,
-			models: event.detail?.models
+			detail: event.detail
 		});
 
-		const models = event.detail?.models as Record<number, Partial<any>> | undefined;
-		if (models) {
-			const updatedData = [...currentData];
-			for (const [indexStr, patch] of Object.entries(models)) {
-				const rowIndex = Number(indexStr);
-				const oldRow = updatedData[rowIndex];
-				updatedData[rowIndex] = { ...oldRow, ...patch };
-				
-				console.log('[ROW UPDATE]', {
-					tab: activeTab,
-					rowIndex,
-					oldValues: oldRow,
-					changes: patch,
-					newValues: updatedData[rowIndex]
+		const detail = event.detail;
+		if (detail && detail.data !== undefined) {
+			// RevoGrid afteredit structure: { prop, model, data (new array), column, rowIndex }
+			const updatedData = detail.data;
+
+			// Check if editing affected the bid item number (requires re-sort)
+			let needsSort = false;
+			if (activeTab === 'bid-item-setup' && detail.prop === 'bidItem') {
+				needsSort = true;
+			}
+
+			console.log('[ROW UPDATE]', {
+				tab: activeTab,
+				rowIndex: detail.rowIndex,
+				prop: detail.prop,
+				newValue: detail.model,
+				dataLength: updatedData.length
+			});
+
+			// Auto-sort for bid item setup after editing
+			if (needsSort && activeTab === 'bid-item-setup') {
+				updatedData.sort((a: any, b: any) => {
+					// Extract numeric part from bidItem
+					const aNum = parseInt(a.bidItem) || 0;
+					const bNum = parseInt(b.bidItem) || 0;
+
+					// Primary sort: numeric ascending
+					if (aNum !== bNum) return aNum - bNum;
+
+					// Secondary sort: alphabetical
+					return (a.bidItem || '').localeCompare(b.bidItem || '');
 				});
 			}
+
 			currentStore.setData(updatedData as any);
+
+			// Use setTimeout to check for empty row after the edit is complete and DOM updates
+			setTimeout(() => {
+				const data = currentStore.data;
+				if (data.length > 0) {
+					const lastRow: any = data[data.length - 1];
+					let isEmpty = false;
+
+					if (activeTab === 'bid-item-setup') {
+						isEmpty = !lastRow.bidItem && !lastRow.description && !lastRow.bidQuantity;
+					} else if (activeTab === 'information-setup') {
+						isEmpty = !lastRow.fieldName && !lastRow.fieldValue;
+					} else if (activeTab === 'estimate-list') {
+						isEmpty = !lastRow.estimateNo && !lastRow.projectName && !lastRow.client;
+					}
+
+					if (!isEmpty) {
+						console.log('[AUTO ROW] Adding empty row after edit on', activeTab);
+						if (activeTab === 'bid-item-setup') addBidItem();
+						else if (activeTab === 'information-setup') addInfoSetupItem();
+						else if (activeTab === 'estimate-list') addEstimate();
+					}
+				}
+			}, 100);
 		}
 	}
 
@@ -116,14 +156,14 @@
 		else await loadBidItems();
 	}
 
-	// Track tab changes
+	// Track tab changes for logging only
 	$effect(() => {
 		console.log('[TAB CHANGE] Active tab:', activeTab, 'Row count:', currentData.length);
 		console.log('[DATA PREVIEW]', {
 			tab: activeTab,
 			dataLength: currentData.length,
 			firstRow: currentData[0],
-			columns: currentColumns.map(c => c.prop)
+			columns: currentColumns.map((c) => c.prop)
 		});
 	});
 </script>
@@ -133,13 +173,6 @@
 </svelte:head>
 
 <div class="h-screen flex flex-col">
-	<GridToolbar
-		onAdd={handleAdd}
-		onDelete={handleDelete}
-		onClear={handleClear}
-		selectedCount={selectionCount}
-	/>
-
 	<div class="flex-1">
 		{#if currentError}
 			<div class="flex items-center justify-center h-full">
@@ -156,16 +189,17 @@
 		{:else if currentLoading}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
-					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4">
-					</div>
+					<div
+						class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"
+					></div>
 					<p class="text-muted-foreground">Loading data...</p>
 				</div>
 			</div>
 		{:else}
-			<DataGrid 
-				data={currentData} 
-				columns={currentColumns} 
-				onEdit={handleEdit} 
+			<DataGrid
+				data={currentData}
+				columns={currentColumns}
+				onEdit={handleEdit}
 				onSourceSet={handleSourceSet}
 				onCellChange={handleCellChange}
 			/>

@@ -58,18 +58,22 @@ export const UNIT_OPTIONS = ['LS', 'LF', 'CY', 'SY', 'BCY', 'LCY', 'EA', 'SF'].m
 export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 	{
 		prop: 'bidItem',
-		name: 'Bid Item',
-		size: 200
+		name: 'Bid Item Number',
+		size: 150,
+		readonly: false,
+		editor: 'text'
 	},
-	{ prop: 'description', name: 'Description', size: 300 },
-	{ prop: 'bidQuantity', name: 'Bid Quantity', size: 120 },
+	{ prop: 'description', name: 'Description', size: 300, readonly: false, editor: 'text' },
+	{ prop: 'bidQuantity', name: 'Quantity', size: 120, readonly: false, editor: 'text' },
 	{
 		prop: 'unit',
-		name: 'Unit',
-		size: 80
+		name: 'Unit of Measurement',
+		size: 150,
+		readonly: false,
+		editor: 'text'
 	},
-	{ prop: 'takeoffQuantity', name: 'Takeoff Quantity', size: 150 },
-	{ prop: 'clientNo', name: 'Client #', size: 100 }
+	{ prop: 'takeoffQuantity', name: 'Takeoff Quantity', size: 150, readonly: false, editor: 'text' },
+	{ prop: 'clientNo', name: 'Client #', size: 100, readonly: false, editor: 'text' }
 ];
 
 const store = createDataStore<BidItem>();
@@ -90,8 +94,21 @@ export async function loadBidItems() {
 			takeoffQuantity: item.total,
 			clientNo: String(10 + i * 10)
 		}));
+		
+		// Always add one empty row for user to start typing
+		const newId = bidItems.length + 1;
+		bidItems.push({
+			id: newId,
+			bidItem: '',
+			description: '',
+			bidQuantity: 0,
+			unit: '',
+			takeoffQuantity: 0,
+			clientNo: ''
+		});
+		
 		store.setData(bidItems);
-		console.log('[BID ITEM STORE] Loaded', bidItems.length, 'bid items', bidItems);
+		console.log('[BID ITEM STORE] Loaded', bidItems.length, 'bid items (includes empty row)', bidItems);
 	} catch (err) {
 		console.error('[BID ITEM STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load bid items'));
@@ -107,11 +124,11 @@ export function addBidItem() {
 	const newId = Math.max(0, ...store.data.map((r) => r.id)) + 1;
 	const newItem: BidItem = {
 		id: newId,
-		bidItem: BID_ITEM_OPTIONS[0].value,
+		bidItem: '',
 		description: '',
-		bidQuantity: 1,
-		unit: 'LS',
-		takeoffQuantity: 1,
+		bidQuantity: 0,
+		unit: '',
+		takeoffQuantity: 0,
 		clientNo: ''
 	};
 	store.addRow(newItem);

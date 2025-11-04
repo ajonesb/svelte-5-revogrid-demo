@@ -18,12 +18,12 @@ export interface EstimateItem {
 }
 
 export const ESTIMATE_COLUMNS: ColumnRegular[] = [
-	{ prop: 'estimateNo', name: 'Estimate #', size: 120 },
-	{ prop: 'projectName', name: 'Project Name', size: 300 },
-	{ prop: 'client', name: 'Client', size: 200 },
-	{ prop: 'status', name: 'Status', size: 120 },
-	{ prop: 'total', name: 'Total', size: 120 },
-	{ prop: 'createdDate', name: 'Created', size: 120 }
+	{ prop: 'estimateNo', name: 'Estimate #', size: 120, readonly: false, editor: 'text' },
+	{ prop: 'projectName', name: 'Project Name', size: 300, readonly: false, editor: 'text' },
+	{ prop: 'client', name: 'Client', size: 200, readonly: false, editor: 'text' },
+	{ prop: 'status', name: 'Status', size: 120, readonly: false, editor: 'text' },
+	{ prop: 'total', name: 'Total', size: 120, readonly: false, editor: 'text' },
+	{ prop: 'createdDate', name: 'Created', size: 120, readonly: false, editor: 'text' }
 ];
 
 const store = createDataStore<EstimateItem>();
@@ -36,15 +36,28 @@ export async function loadEstimates() {
 		const apiItems = await itemsApiService.loadItems(10);
 		const estimates: EstimateItem[] = apiItems.map((item, i) => ({
 			id: i + 1,
-			estimateNo: `EST-${26000100 + i}`,
+			estimateNo: `${26000100 + i}`,
 			projectName: item.name,
 			client: `Client ${String.fromCharCode(65 + (i % 26))}`,
 			status: i % 3 === 0 ? 'Draft' : i % 3 === 1 ? 'In Review' : 'Approved',
 			total: item.total * 1000,
 			createdDate: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
 		}));
+		
+		// Always add one empty row for user to start typing
+		const newId = estimates.length + 1;
+		estimates.push({
+			id: newId,
+			estimateNo: '',
+			projectName: '',
+			client: '',
+			status: 'Draft',
+			total: 0,
+			createdDate: new Date().toISOString().split('T')[0]
+		});
+		
 		store.setData(estimates);
-		console.log('[ESTIMATE STORE] Loaded', estimates.length, 'estimates', estimates);
+		console.log('[ESTIMATE STORE] Loaded', estimates.length, 'estimates (includes empty row)', estimates);
 	} catch (err) {
 		console.error('[ESTIMATE STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load estimates'));
@@ -60,7 +73,7 @@ export function addEstimate() {
 	const newId = Math.max(0, ...store.data.map((r) => r.id)) + 1;
 	const newEstimate: EstimateItem = {
 		id: newId,
-		estimateNo: `EST-${26000100 + newId}`,
+		estimateNo: '',
 		projectName: '',
 		client: '',
 		status: 'Draft',

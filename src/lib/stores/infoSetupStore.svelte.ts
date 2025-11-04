@@ -16,10 +16,10 @@ export interface InfoSetupItem {
 }
 
 export const INFO_SETUP_COLUMNS: ColumnRegular[] = [
-	{ prop: 'fieldName', name: 'Field Name', size: 200 },
-	{ prop: 'fieldValue', name: 'Value', size: 300 },
-	{ prop: 'category', name: 'Category', size: 150 },
-	{ prop: 'required', name: 'Required', size: 100 }
+	{ prop: 'fieldName', name: 'Field Name', size: 200, readonly: false, editor: 'text' },
+	{ prop: 'fieldValue', name: 'Value', size: 300, readonly: false, editor: 'text' },
+	{ prop: 'category', name: 'Category', size: 150, readonly: false, editor: 'text' },
+	{ prop: 'required', name: 'Required', size: 100, readonly: false, editor: 'text' }
 ];
 
 const store = createDataStore<InfoSetupItem>();
@@ -37,8 +37,19 @@ export async function loadInfoSetup() {
 			category: i % 3 === 0 ? 'Project' : i % 3 === 1 ? 'Client' : 'Billing',
 			required: i % 2 === 0
 		}));
+		
+		// Always add one empty row for user to start typing
+		const newId = infoItems.length + 1;
+		infoItems.push({
+			id: newId,
+			fieldName: '',
+			fieldValue: '',
+			category: 'Project',
+			required: false
+		});
+		
 		store.setData(infoItems);
-		console.log('[INFO SETUP STORE] Loaded', infoItems.length, 'items', infoItems);
+		console.log('[INFO SETUP STORE] Loaded', infoItems.length, 'items (includes empty row)', infoItems);
 	} catch (err) {
 		console.error('[INFO SETUP STORE] Error loading:', err);
 		store.setError(handleError(err, 'Failed to load information setup'));
