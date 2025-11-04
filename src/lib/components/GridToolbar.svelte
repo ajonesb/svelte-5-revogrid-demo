@@ -16,16 +16,16 @@
 	>
 		Add Row
 	</button>
-	
-	<button 
+
+	<button
 		class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:pointer-events-none disabled:opacity-50"
-		onclick={onDelete} 
+		onclick={onDelete}
 		disabled={selectedCount === 0}
 	>
 		Delete Selected
 	</button>
-	
-	<button 
+
+	<button
 		class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
 		onclick={onClear}
 	>

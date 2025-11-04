@@ -1,109 +1,125 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { store, GRID_COLUMNS, addRow, deleteSelected, clearAll, updateRow, loadData } from '$lib/stores/dataStore.svelte';
+	import { tabStore } from '$lib/stores/tabStore.svelte';
+	import {
+		estimateStore,
+		loadEstimates,
+		addEstimate,
+		ESTIMATE_COLUMNS
+	} from '$lib/stores/estimateStore.svelte';
+	import {
+		infoSetupStore,
+		loadInfoSetup,
+		addInfoSetupItem,
+		INFO_SETUP_COLUMNS
+	} from '$lib/stores/infoSetupStore.svelte';
+	import {
+		bidItemStore,
+		loadBidItems,
+		addBidItem,
+		BID_ITEM_COLUMNS
+	} from '$lib/stores/bidItemStore.svelte';
 	import GridToolbar from '$lib/components/GridToolbar.svelte';
-	
-	// For SSR compatibility: Dynamic import
-	let RevoGrid = $state<any>(null);
-	let mounted = $state(false);
+	import DataGrid from '$lib/components/DataGrid.svelte';
 
 	onMount(async () => {
-		console.log('Component mounting...');
-		if (browser) {
-			// STEP 1: Load the RevoGrid component
-			try {
-				const { RevoGrid: RevoGridComponent } = await import('@revolist/svelte-datagrid');
-				RevoGrid = RevoGridComponent;
-				console.log('RevoGrid component loaded:', typeof RevoGrid);
-			} catch (error) {
-				console.error('Failed to load RevoGrid:', error);
-			}
-			
-			// STEP 2: Load data from API
-			console.log('Loading data...');
-			await loadData();
-			mounted = true;
-			console.log('Component fully mounted');
-		}
+		// Load all data on mount
+		await Promise.all([loadEstimates(), loadInfoSetup(), loadBidItems()]);
 	});
 
-	const columns = GRID_COLUMNS;
+	// Reactive values based on active tab
+	const activeTab = $derived(tabStore.active);
+	const currentStore = $derived(
+		activeTab === 'estimate-list'
+			? estimateStore
+			: activeTab === 'information-setup'
+				? infoSetupStore
+				: bidItemStore
+	);
+	const currentColumns = $derived(
+		activeTab === 'estimate-list'
+			? ESTIMATE_COLUMNS
+			: activeTab === 'information-setup'
+				? INFO_SETUP_COLUMNS
+				: BID_ITEM_COLUMNS
+	);
+	const currentData = $derived(currentStore.data);
+	const currentLoading = $derived(currentStore.loading);
+	const currentError = $derived(currentStore.error);
+	const selectionCount = $derived(currentStore.selectedIds.size);
+
+	// Actions
+	function handleAdd() {
+		if (activeTab === 'estimate-list') addEstimate();
+		else if (activeTab === 'information-setup') addInfoSetupItem();
+		else addBidItem();
+	}
+
+	function handleDelete() {
+		currentStore.deleteSelected();
+	}
+
+	function handleClear() {
+		currentStore.clearAll();
+	}
 
 	function handleEdit(event: any) {
-		const { detail } = event;
-		const updatedItem = detail.val;
-		updateRow(updatedItem);
+		const models = event.detail?.models as Record<number, Partial<any>> | undefined;
+		if (models) {
+			const updatedData = [...currentData];
+			for (const [indexStr, patch] of Object.entries(models)) {
+				updatedData[Number(indexStr)] = { ...updatedData[Number(indexStr)], ...patch };
+			}
+			currentStore.setData(updatedData as any);
+		}
 	}
 
-	function handleSelection(event: any) {
-		// Selection is handled automatically by the store
+	function handleSourceSet(event: CustomEvent<any>) {
+		currentStore.setData(event.detail.source);
 	}
 
-	// Svelte 5: Use $derived for reactive computations
-	const currentLoading = $derived(store.loading);
-	const currentError = $derived(store.error);
-	const currentSelectedIds = $derived(store.selectedIds);
-	const currentData = $derived(store.data);
-	const selectionCount = $derived(currentSelectedIds.size);
+	async function handleReload() {
+		if (activeTab === 'estimate-list') await loadEstimates();
+		else if (activeTab === 'information-setup') await loadInfoSetup();
+		else await loadBidItems();
+	}
 </script>
 
 <svelte:head>
-	<title>Excel-like Data Grid</title>
+	<title>Data Table - {activeTab}</title>
 </svelte:head>
 
 <div class="h-screen flex flex-col">
-	<GridToolbar 
-		onAdd={addRow}
-		onDelete={deleteSelected} 
-		onClear={clearAll} 
+	<GridToolbar
+		onAdd={handleAdd}
+		onDelete={handleDelete}
+		onClear={handleClear}
 		selectedCount={selectionCount}
 	/>
-	
+
 	<div class="flex-1">
-		<!-- ERROR STATE: Show if API fails -->
 		{#if currentError}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
-					<p class="text-red-500 mb-4">Error: {currentError}</p>
-					<button 
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-						onclick={() => loadData()}
+					<p class="text-red-500 mb-4">{currentError}</p>
+					<button
+						class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+						onclick={handleReload}
 					>
 						Retry
 					</button>
 				</div>
 			</div>
-		<!-- LOADING STATE: Show while fetching data -->
 		{:else if currentLoading}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
-					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-					<p>Loading data from API...</p>
+					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4">
+					</div>
+					<p class="text-muted-foreground">Loading data...</p>
 				</div>
 			</div>
-		<!-- SUCCESS STATE: Show the actual grid -->
-		{:else if mounted && RevoGrid}
-			<!-- This is where the magic happens! -->
-			<RevoGrid 
-				source={currentData}
-				{columns}
-				range
-				readonly={false}
-				on:celledit={handleEdit}
-				on:aftersourceset={handleSelection}
-				class="h-full"
-			/>
-		<!-- COMPONENT FAILED: RevoGrid didn't load -->
-		{:else if mounted && !RevoGrid}
-			<div class="flex items-center justify-center h-full">
-				<p class="text-red-500">Failed to load data grid component</p>
-			</div>
-		<!-- INITIAL STATE: Before anything loads -->
 		{:else}
-			<div class="flex items-center justify-center h-full">
-				<p>Loading grid...</p>
-			</div>
+			<DataGrid data={currentData} columns={currentColumns} onEdit={handleEdit} onSourceSet={handleSourceSet} />
 		{/if}
 	</div>
 </div>

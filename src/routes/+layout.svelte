@@ -1,12 +1,14 @@
 <script lang="ts">
 	import '../app.css';
 
+	import HeaderTabs from '$lib/components/HeaderTabs.svelte';
+
 	let { children } = $props();
 </script>
 
-<div class="min-h-screen">
-	<header class="border-b p-4">
-		<h1 class="text-xl font-bold">Simple Data Grid</h1>
+<div class="min-h-screen bg-background">
+	<header class="">
+		<HeaderTabs />
 	</header>
 
 	<main>

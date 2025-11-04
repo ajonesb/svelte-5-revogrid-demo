@@ -1,107 +1,162 @@
-# SvelteKit + RevoGrid Demo
+# SvelteKit Data Table with Autocomplete
 
-Minimal Excel-like data grid with **SvelteKit 5**, **RevoGrid**, and real API data.
+Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and **autocomplete** support.
 
-## Features
+## ✨ Features
 
-- Excel-like editing with auto-calculations  
-- Real API data from JSONPlaceholder
-- Add, edit, delete rows
-- Loading states and error handling
-- Clean service architecture (SOLID principles)
+### Three Data Views
+- **Estimate List** - Manage project estimates
+- **Information Setup** - Configure project information
+- **Bid Item Setup** - Manage bid items with **autocomplete dropdowns**
 
-## Quick Start
+### Excel-like Experience
+- ✅ Inline editing
+- ✅ Row selection
+- ✅ Autocomplete for Bid Items and Units
+- ✅ Add/Delete/Clear operations
+- ✅ Loading & error states
+
+### Clean Architecture
+- ✅ **DRY** - Reusable base store and components
+- ✅ **SOLID** - Single responsibility per module
+- ✅ **KISS** - Minimal complexity
+- ✅ **Svelte 5** - Modern runes API
+- ✅ **Shadcn-UI** - Consistent design tokens
+
+## 🚀 Quick Start
 
 ```bash
 pnpm install
-pnpm dev  # → http://localhost:5173
+pnpm dev  # → http://localhost:5174
 ```
 
-## Tech Stack
+## 📚 Documentation
 
-**SvelteKit 5** + **RevoGrid** + **TypeScript** + **TailwindCSS**
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architecture guide
+- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Common tasks & API reference
 
-## Project Structure
+## 🛠 Tech Stack
+
+- **SvelteKit 5** - Framework with modern runes
+- **RevoGrid** - High-performance data grid
+- **@revolist/revogrid-column-select** - Autocomplete plugin
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Shadcn-Svelte** - UI components
+
+## 📁 Project Structure
 
 ```
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── ui/button/           # shadcn-svelte button
-│   │   └── GridToolbar.svelte   # Add/Delete/Clear buttons
-│   ├── services/
-│   │   ├── http.service.ts      # Generic HTTP client
-│   │   ├── items.api.service.ts # API calls & data mapping
-│   │   └── api.config.ts        # API configuration
-│   └── stores/
-│       └── dataStore.ts         # State management
-├── routes/
-│   └── +page.svelte             # Main grid component
-└── app.css                      # Tailwind styles
+│   │   ├── DataGrid.svelte          # Reusable grid with autocomplete
+│   │   ├── GridToolbar.svelte       # Action buttons
+│   │   ├── HeaderTabs.svelte        # Tab navigation
+│   │   └── ui/                      # Shadcn components
+│   ├── stores/
+│   │   ├── baseStore.svelte.ts      # Base store factory (DRY)
+│   │   ├── tabStore.svelte.ts       # Tab state management
+│   │   ├── estimateStore.svelte.ts  # Estimate data
+│   │   ├── infoSetupStore.svelte.ts # Info setup data
+│   │   └── bidItemStore.svelte.ts   # Bid items with autocomplete
+│   └── services/
+│       ├── http.service.ts          # HTTP client
+│       ├── items.api.service.ts     # API operations
+│       └── api.config.ts            # Configuration
+└── routes/
+    ├── +layout.svelte               # App layout
+    └── +page.svelte                 # Main page (minimal)
 ```
 
-## Key Components
+## 🎯 Key Features Explained
 
-### Data Store (`dataStore.ts`)
+### Autocomplete (Bid Item Setup)
+The Bid Item Setup tab includes dropdown autocomplete for:
+- **Bid Item column**: 25+ predefined construction items
+- **Unit column**: Standard measurement units (LS, LF, CY, SY, etc.)
+
+Implementation uses `@revolist/revogrid-column-select` plugin with clean column configuration.
+
+### Tab-Based Data Views
+Each tab loads and manages its own data independently:
+- Switch tabs without losing data
+- Separate CRUD operations per tab
+- Optimized loading with Promise.all()
+
+### Svelte 5 Runes
+Modern reactive state management:
 ```typescript
-interface Item {
-  id: number;
-  name: string;
-  qty: number;
-  price: number;
-  total: number; // auto-calculated
-}
-
-// Functions: addRow, deleteSelected, clearAll, updateRow
+let data = $state<T[]>([]);           // Reactive state
+const activeTab = $derived(store.active); // Derived value
+$effect(() => { /* side effects */ });    // Effects
 ```
 
-### Main Grid (`+page.svelte`)
-- Dynamic RevoGrid import (SSR compatibility)
-- Error states and loading indicators
-- Real-time data updates
+## 🔧 Customization
 
-## Customize for Your API
+### Add a New Tab Type
+1. Create store: `src/lib/stores/yourStore.svelte.ts`
+2. Define interface and columns
+3. Add to `tabStore.TABS`
+4. Update `+page.svelte` derived values
 
-1. **Update API config:**
+### Modify Autocomplete Options
+```typescript
+// src/lib/stores/bidItemStore.svelte.ts
+export const BID_ITEM_OPTIONS = [
+  'Your Item 1',
+  'Your Item 2',
+  // ...
+].map(label => ({ label, value: label }));
+```
+
+### Change API Endpoint
 ```typescript
 // src/lib/services/api.config.ts
 export const API_CONFIG = {
-  BASE_URL: 'https://your-api.com/api',
+  BASE_URL: 'https://your-api.com',
   ENDPOINTS: { ITEMS: '/your-endpoint' }
 };
 ```
 
-2. **Map your data structure:**
-```typescript
-// src/lib/services/items.api.service.ts
-private transformToItems(apiData: YourApiType[]): Item[] {
-  return apiData.map(item => ({
-    id: item.your_id_field,
-    name: item.your_name_field,
-    qty: item.your_quantity_field,
-    price: item.your_price_field,
-    total: item.your_quantity_field * item.your_price_field
-  }));
-}
-```
-
-3. **Add authentication (if needed):**
-```typescript
-// src/lib/services/http.service.ts
-const headers = {
-  'Authorization': `Bearer ${token}`,
-  'Content-Type': 'application/json'
-};
-```
-
-## Development
+## 📋 Available Scripts
 
 ```bash
-pnpm dev        # Development server
-pnpm build      # Production build  
-pnpm preview    # Preview build
+pnpm dev          # Start dev server
+pnpm build        # Build for production
+pnpm preview      # Preview production build
+pnpm check        # Type check
+pnpm lint         # Lint code
+pnpm format       # Format code
 ```
+
+## 🏗 Architecture Highlights
+
+### DRY (Don't Repeat Yourself)
+- `createDataStore<T>()` factory for all stores
+- `DataGrid.svelte` reusable component
+- Shared error handling utilities
+
+### SOLID Principles
+- **Single Responsibility**: Each store handles one data type
+- **Open/Closed**: Extend base store without modification
+- **Dependency Inversion**: Components depend on interfaces
+
+### KISS (Keep It Simple)
+- Minimal component hierarchy
+- Clear separation of concerns
+- No over-engineering
+
+## 📖 Learn More
+
+- [SvelteKit 5 Docs](https://svelte.dev/docs/kit)
+- [RevoGrid Docs](https://revolist.github.io/revogrid/)
+- [Shadcn-Svelte](https://www.shadcn-svelte.com/)
+
+## 📝 License
+
+MIT
 
 ---
 
-**Perfect for**: Learning RevoGrid, prototyping, data management demos
+**Built with ❤️ using modern web standards and best practices**

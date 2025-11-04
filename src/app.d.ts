@@ -11,3 +11,10 @@ declare global {
 }
 
 export {};
+
+// Minimal type shims for third‑party plugins without TS types
+declare module '@revolist/revogrid-column-select' {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const SelectTypePlugin: any;
+	export default SelectTypePlugin;
+}
