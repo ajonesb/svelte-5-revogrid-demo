@@ -2,7 +2,7 @@
 
 Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and **autocomplete** support.
 
-## ✨ Features
+## Features
 
 ### Three Data Views
 - **Estimate List** - Manage project estimates
@@ -10,32 +10,32 @@ Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and
 - **Bid Item Setup** - Manage bid items with **autocomplete dropdowns**
 
 ### Excel-like Experience
-- ✅ Inline editing
-- ✅ Row selection
-- ✅ Autocomplete for Bid Items and Units
-- ✅ Add/Delete/Clear operations
-- ✅ Loading & error states
+- Inline editing
+- Row selection
+- Autocomplete for Bid Items and Units
+- Add/Delete/Clear operations
+- Loading & error states
 
 ### Clean Architecture
-- ✅ **DRY** - Reusable base store and components
-- ✅ **SOLID** - Single responsibility per module
-- ✅ **KISS** - Minimal complexity
-- ✅ **Svelte 5** - Modern runes API
-- ✅ **Shadcn-UI** - Consistent design tokens
+- **DRY** - Reusable base store and components
+- **SOLID** - Single responsibility per module
+- **KISS** - Minimal complexity
+- **Svelte 5** - Modern runes API
+- **Shadcn-UI** - Consistent design tokens
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 pnpm install
 pnpm dev  # → http://localhost:5174
 ```
 
-## 📚 Documentation
+## Documentation
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architecture guide
 - **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Common tasks & API reference
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **SvelteKit 5** - Framework with modern runes
 - **RevoGrid** - High-performance data grid
@@ -44,7 +44,7 @@ pnpm dev  # → http://localhost:5174
 - **Tailwind CSS** - Styling
 - **Shadcn-Svelte** - UI components
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -130,7 +130,7 @@ pnpm lint         # Lint code
 pnpm format       # Format code
 ```
 
-## 🏗 Architecture Highlights
+## Architecture Highlights
 
 ### DRY (Don't Repeat Yourself)
 - `createDataStore<T>()` factory for all stores
@@ -147,16 +147,11 @@ pnpm format       # Format code
 - Clear separation of concerns
 - No over-engineering
 
-## 📖 Learn More
+## Learn More
 
 - [SvelteKit 5 Docs](https://svelte.dev/docs/kit)
 - [RevoGrid Docs](https://revolist.github.io/revogrid/)
 - [Shadcn-Svelte](https://www.shadcn-svelte.com/)
 
-## 📝 License
-
-MIT
-
----
-
-**Built with ❤️ using modern web standards and best practices**
+## Demo
+https://svelte-5-revo-grid-demo.netlify.app/
