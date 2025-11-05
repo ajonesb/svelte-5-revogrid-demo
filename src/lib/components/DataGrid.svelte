@@ -140,3 +140,17 @@
 		<p>Loading...</p>
 	</div>
 {/if}
+
+<style>
+	:global(revo-grid) {
+		--rgCell-padding: 0 0.5rem;
+	}
+	
+	:global(.rgCell),
+	:global(.rgHeaderCell),
+	:global(revo-grid .rgCell),
+	:global(revo-grid .rgHeaderCell) {
+		padding-left: 0.5rem !important;
+		padding-right: 0.5rem !important;
+	}
+</style>
