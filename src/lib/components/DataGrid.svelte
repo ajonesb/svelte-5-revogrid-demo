@@ -21,20 +21,19 @@
 	onMount(async () => {
 		if (browser) {
 			try {
-				// @ts-expect-error - Module resolution issue with svelte-datagrid v4.14.0
 				const module = await import('@revolist/svelte-datagrid');
-				// Try multiple ways to get the component
-				RevoGrid = module.RevoGrid || module.default || module;
-				
+				// Get the RevoGrid component
+				RevoGrid = module.RevoGrid;
+
 				// Check if it's a valid function/component
 				if (typeof RevoGrid !== 'function') {
 					console.error('[GRID INIT] Invalid RevoGrid component:', module);
 					return;
 				}
-				
+
 				mounted = true;
 				console.log('[GRID INIT] Grid mounted successfully');
-				
+
 				// Add a global click listener to commit edits when clicking outside edit cell
 				setTimeout(() => {
 					if (gridRef) {
@@ -76,13 +75,13 @@
 		console.log('[SOURCE SET]', event.detail.source?.length);
 		if (onSourceSet) onSourceSet(event);
 	}
-	
+
 	function handleBeforeEdit(event: any) {
 		console.log('[BEFORE EDIT] Starting edit:', event.detail);
 		// Allow the edit - don't prevent default
 		return true;
 	}
-	
+
 	function handleBeforeEditStart(event: any) {
 		console.log('[BEFORE EDIT START]:', event.detail);
 		isEditing = true;
@@ -90,7 +89,7 @@
 		// Explicitly allow editing
 		return true;
 	}
-	
+
 	function handleCellFocus(event: any) {
 		console.log('[CELL FOCUS] Cell focused:', event.detail);
 		// If we're currently editing and about to focus a different cell, commit the edit
@@ -108,21 +107,18 @@
 			}
 		}
 	}
-	
+
 	function handleCellEdit(event: any) {
 		console.log('[CELL EDIT] Cell being edited:', event.detail);
 		if (onEdit) onEdit(event);
 	}
-
-
 </script>
 
 {#if mounted && RevoGrid}
-	<svelte:component
-		this={RevoGrid}
+	<RevoGrid
 		bind:this={gridRef}
 		source={data}
-		columns={columns}
+		{columns}
 		readonly={false}
 		range={false}
 		resize={true}
@@ -145,12 +141,19 @@
 	:global(revo-grid) {
 		--rgCell-padding: 0 0.5rem;
 	}
-	
+
 	:global(.rgCell),
-	:global(.rgHeaderCell),
-	:global(revo-grid .rgCell),
-	:global(revo-grid .rgHeaderCell) {
+	:global(revo-grid .rgCell) {
 		padding-left: 0.5rem !important;
 		padding-right: 0.5rem !important;
+	}
+
+	:global(.rgHeaderCell),
+	:global(revo-grid .rgHeaderCell) {
+		font-weight: 600 !important;
+		color: #52525b !important;
+		text-transform: none !important;
+		background-color: #fafafa !important;
+		border-bottom: 1px solid #e4e4e7 !important;
 	}
 </style>

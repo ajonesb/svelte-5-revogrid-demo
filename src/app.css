@@ -56,3 +56,23 @@
 		color: hsl(var(--foreground));
 	}
 }
+
+@layer components {
+	/* RevoGrid Header Styling */
+	.rgHeaderCell,
+	revo-grid .rgHeaderCell {
+		@apply font-semibold text-zinc-600 bg-zinc-50 border-b border-zinc-200;
+		text-transform: none !important;
+	}
+
+	/* RevoGrid Cell Padding */
+	.rgCell,
+	revo-grid .rgCell {
+		padding-left: 0.5rem !important;
+		padding-right: 0.5rem !important;
+	}
+
+	revo-grid {
+		--rgCell-padding: 0 0.5rem;
+	}
+}

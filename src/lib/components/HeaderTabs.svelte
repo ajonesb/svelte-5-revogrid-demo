@@ -8,7 +8,7 @@
 	}
 </script>
 
-<nav class="w-full bg-white border-b">
+<nav class="w-full bg-white">
 	<ul class="flex items-center gap-1 px-6">
 		{#each TABS as tab}
 			<li>
