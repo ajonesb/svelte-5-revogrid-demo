@@ -156,7 +156,7 @@
 	<title>Data Table - {activeTab}</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col">
+<div class=" h-screen flex flex-col">
 	<div class="flex-1">
 		{#if currentError}
 			<div class="flex items-center justify-center h-full">

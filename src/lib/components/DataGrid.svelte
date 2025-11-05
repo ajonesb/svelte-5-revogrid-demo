@@ -119,27 +119,31 @@
 								}
 							}
 						});
-					}
-				}, 500);
-
-				// Reposition overlay while editing
-				const reposition = () => {
-					if (!isEditing || !currentEditCell) return;
-					const r = currentEditCell?.rowIndex ?? currentEditCell?.row ?? 0;
-					const c = currentEditCell?.colIndex ?? currentEditCell?.col ?? 0;
-					positionOverlayForCell(r, c);
-				};
-				window.addEventListener('scroll', reposition, true);
-				window.addEventListener('resize', reposition, true);
-				onDestroy(() => {
-					window.removeEventListener('scroll', reposition, true);
-					window.removeEventListener('resize', reposition, true);
-				});
-			} catch (error) {
-				console.error('[GRID INIT] Failed to load RevoGrid:', error);
 			}
-		}
-	});
+		}, 500);
+
+		// Reposition overlay while editing
+		const reposition = () => {
+			if (!isEditing || !currentEditCell) return;
+			const r = currentEditCell?.rowIndex ?? currentEditCell?.row ?? 0;
+			const c = currentEditCell?.colIndex ?? currentEditCell?.col ?? 0;
+			positionOverlayForCell(r, c);
+		};
+		window.addEventListener('scroll', reposition, true);
+		window.addEventListener('resize', reposition, true);
+	} catch (error) {
+		console.error('[GRID INIT] Failed to load RevoGrid:', error);
+	}
+	}
+});
+
+onDestroy(() => {
+	// Clean up event listeners - only in browser
+	if (browser) {
+		window.removeEventListener('scroll', () => {}, true);
+		window.removeEventListener('resize', () => {}, true);
+	}
+});
 
 	function handleAfterEdit(event: any) {
 		console.log('[AFTER EDIT] Full event:', event.detail);
@@ -254,7 +258,7 @@
 </script>
 
 {#if mounted && RevoGrid}
-	<div class="grid-wrapper" style="position: relative;">
+	<div class="grid-wrapper" style="position: relative; height: 100%; overflow: auto;">
 		<RevoGrid
 			bind:this={gridRef}
 			source={data}
@@ -301,6 +305,7 @@
 <style>
 	:global(revo-grid) {
 		--rgCell-padding: 0 0.5rem;
+		height: 100vh !important;
 	}
 
 	:global(.rgCell),
@@ -316,6 +321,19 @@
 		text-transform: none !important;
 		background-color: #fafafa !important;
 		border-bottom: 1px solid #e4e4e7 !important;
+	}
+
+	/* Hide RevoGrid attribution link */
+	:global(revogr-attribution),
+	:global(.attribution),
+	:global([class*="attribution"]) {
+		display: none !important;
+		visibility: hidden !important;
+		opacity: 0 !important;
+		height: 0 !important;
+		width: 0 !important;
+		position: absolute !important;
+		pointer-events: none !important;
 	}
 
 	/* Minimal overlay: tiny neutral pill under the editing cell */
