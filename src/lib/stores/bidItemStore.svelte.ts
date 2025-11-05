@@ -101,9 +101,9 @@ export async function loadBidItems() {
 			id: newId,
 			bidItem: '',
 			description: '',
-			bidQuantity: 0,
+			bidQuantity: null as any,
 			unit: '',
-			takeoffQuantity: 0,
+			takeoffQuantity: null as any,
 			clientNo: ''
 		});
 		
@@ -126,9 +126,9 @@ export function addBidItem() {
 		id: newId,
 		bidItem: '',
 		description: '',
-		bidQuantity: 0,
+		bidQuantity: null as any,
 		unit: '',
-		takeoffQuantity: 0,
+		takeoffQuantity: null as any,
 		clientNo: ''
 	};
 	store.addRow(newItem);

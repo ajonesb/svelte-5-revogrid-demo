@@ -124,7 +124,7 @@
 		source={data}
 		columns={columns}
 		readonly={false}
-		range={true}
+		range={false}
 		resize={true}
 		canFocus={true}
 		useClipboard={true}
