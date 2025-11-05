@@ -44,8 +44,8 @@ export async function loadInfoSetup() {
 			id: newId,
 			fieldName: '',
 			fieldValue: '',
-			category: 'Project',
-			required: false
+			category: '',
+			required: null as any
 		});
 		
 		store.setData(infoItems);
@@ -67,8 +67,8 @@ export function addInfoSetupItem() {
 		id: newId,
 		fieldName: '',
 		fieldValue: '',
-		category: 'Project',
-		required: false
+		category: '',
+		required: null as any
 	};
 	store.addRow(newItem);
 }

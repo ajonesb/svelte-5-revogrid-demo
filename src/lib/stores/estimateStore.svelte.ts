@@ -51,9 +51,9 @@ export async function loadEstimates() {
 			estimateNo: '',
 			projectName: '',
 			client: '',
-			status: 'Draft',
-			total: 0,
-			createdDate: new Date().toISOString().split('T')[0]
+			status: '',
+			total: null as any,
+			createdDate: ''
 		});
 		
 		store.setData(estimates);
@@ -76,9 +76,9 @@ export function addEstimate() {
 		estimateNo: '',
 		projectName: '',
 		client: '',
-		status: 'Draft',
-		total: 0,
-		createdDate: new Date().toISOString().split('T')[0]
+		status: '',
+		total: null as any,
+		createdDate: ''
 	};
 	store.addRow(newEstimate);
 }
