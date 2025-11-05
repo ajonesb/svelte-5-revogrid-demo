@@ -76,11 +76,10 @@
 			// RevoGrid afteredit structure: { prop, model, data (new array), column, rowIndex }
 			const updatedData = detail.data;
 
-			// Check if editing affected the bid item number (requires re-sort)
-			let needsSort = false;
-			if (activeTab === 'bid-item-setup' && detail.prop === 'bidItem') {
-				needsSort = true;
-			}
+			// Don't auto-sort on every keystroke in Bid Item Setup
+			// Sorting can be disruptive while user is typing
+			// Users can manually sort if needed, or we can sort on tab change
+			const needsSort = false;
 
 			console.log('[ROW UPDATE]', {
 				tab: activeTab,
@@ -89,21 +88,6 @@
 				newValue: detail.model,
 				dataLength: updatedData.length
 			});
-
-			// Auto-sort for bid item setup after editing
-			if (needsSort && activeTab === 'bid-item-setup') {
-				updatedData.sort((a: any, b: any) => {
-					// Extract numeric part from bidItem
-					const aNum = parseInt(a.bidItem) || 0;
-					const bNum = parseInt(b.bidItem) || 0;
-
-					// Primary sort: numeric ascending
-					if (aNum !== bNum) return aNum - bNum;
-
-					// Secondary sort: alphabetical
-					return (a.bidItem || '').localeCompare(b.bidItem || '');
-				});
-			}
 
 			currentStore.setData(updatedData as any);
 
