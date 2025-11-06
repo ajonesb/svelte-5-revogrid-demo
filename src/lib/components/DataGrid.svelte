@@ -69,6 +69,26 @@
 		if (grid.mounted) {
 			setTimeout(setupEditCommitHandler, 500);
 			setupOverlayRepositioning();
+			
+			// iOS-specific: Add double-tap handler to trigger edit mode
+			if (gridRef) {
+				let lastTap = 0;
+				gridRef.addEventListener('touchend', (e: TouchEvent) => {
+					const currentTime = new Date().getTime();
+					const tapLength = currentTime - lastTap;
+					
+					if (tapLength < 500 && tapLength > 0) {
+						// Double tap detected - force edit mode
+						const target = e.target as HTMLElement;
+						const cell = target.closest('.rgCell');
+						if (cell) {
+							console.log('[iOS DOUBLE TAP] Triggering edit mode');
+							cell.dispatchEvent(new Event('dblclick', { bubbles: true }));
+						}
+					}
+					lastTap = currentTime;
+				});
+			}
 		}
 	});
 
@@ -103,6 +123,16 @@
 		try {
 			const { row, col } = getEditCellIndices(event.detail);
 			const column = columns?.[col];
+			
+			// iOS fix: Force focus on input element
+			setTimeout(() => {
+				const inputElement = gridRef?.querySelector('.rgCell input, .edit-input input');
+				if (inputElement) {
+					console.log('[iOS FIX] Forcing input focus');
+					inputElement.focus();
+					inputElement.click();
+				}
+			}, 50);
 			
 			// Check if this column should show dropdown
 			const showDropdown = isDropdownColumn(column?.prop, column?.name);
