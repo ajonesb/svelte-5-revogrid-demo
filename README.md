@@ -1,48 +1,97 @@
-# SvelteKit Data Table with Autocomplete
+# SvelteKit Data Table with Filtered Dropdowns
 
-Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and **autocomplete** support.
+Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and **filtered dropdown** support.
 
 ## Features
 
 ### Three Data Views
 - **Estimate List** - Manage project estimates
 - **Information Setup** - Configure project information
-- **Bid Item Setup** - Manage bid items with **autocomplete dropdowns**
+- **Bid Item Setup** - Manage bid items with **real-time filtered dropdowns**
 
 ### Excel-like Experience
-- Inline editing
-- Row selection
-- Autocomplete for Bid Items and Units
+- Inline editing with type-to-filter dropdowns
+- Full-height spreadsheet layout with scrolling
 - Add/Delete/Clear operations
 - Loading & error states
+- "No results" feedback
 
 ### Clean Architecture
 - **DRY** - Reusable base store and components
 - **SOLID** - Single responsibility per module
 - **KISS** - Minimal complexity
-- **Svelte 5** - Modern runes API
-- **Shadcn-UI** - Consistent design tokens
+- **Svelte 5** - Modern runes API (`$state`, `$derived`, `$props`)
+
+## Store Architecture
+
+### Pattern: Smart Container + Dumb Components
+
+```
+┌─────────────────────────────────┐
+│    +page.svelte (Smart)         │
+│  • Imports all stores           │
+│  • Uses $derived reactivity     │
+│  • Manages CRUD operations      │
+│  • Passes data as props         │
+└────────────┬────────────────────┘
+             │
+             ├─> DataGrid.svelte (Dumb)
+             │   • Receives data via props
+             │   • Static BID_ITEM_OPTIONS only
+             │   • No store subscriptions
+             │
+             └─> HeaderTabs.svelte (Semi-Smart)
+                 • tabStore for navigation
+                 • Reactive with $derived
+```
+
+### Store Types
+
+1. **Data Stores** (`estimateStore`, `infoSetupStore`, `bidItemStore`)
+   - Built with `createDataStore()` from `baseStore.svelte.ts`
+   - Reactive with Svelte 5 runes
+   - Manage CRUD operations for each tab
+
+2. **Tab Store** (`tabStore`)
+   - Manages active tab state
+   - Used by `HeaderTabs` and `+page.svelte`
+
+3. **Static Exports** (`BID_ITEM_OPTIONS`, `ESTIMATE_COLUMNS`, etc.)
+   - Non-reactive reference data
+   - Imported directly (no `$` prefix needed)
+
+### Example Usage
+
+```typescript
+// In +page.svelte (Smart Component)
+import { estimateStore, loadEstimates } from '$lib/stores/estimateStore.svelte';
+
+const currentData = $derived(estimateStore.data);       // Reactive
+const isLoading = $derived(estimateStore.loading);     // Reactive
+
+await loadEstimates();                                 // Load data
+estimateStore.setData(updatedData);                   // Update
+estimateStore.deleteSelected();                       // Delete
+
+// In DataGrid.svelte (Dumb Component)
+import { BID_ITEM_OPTIONS } from '$lib/stores/bidItemStore.svelte';
+
+overlayOptions = BID_ITEM_OPTIONS;  // Static array, no reactivity
+```
 
 ## Quick Start
 
 ```bash
 pnpm install
-pnpm dev  # → http://localhost:5174
+pnpm dev  # → http://localhost:5173
 ```
-
-## Documentation
-
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architecture guide
-- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Common tasks & API reference
 
 ## Tech Stack
 
 - **SvelteKit 5** - Framework with modern runes
 - **RevoGrid** - High-performance data grid
-- **@revolist/revogrid-column-select** - Autocomplete plugin
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
-- **Shadcn-Svelte** - UI components
 
 ## Project Structure
 
@@ -50,108 +99,51 @@ pnpm dev  # → http://localhost:5174
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── DataGrid.svelte          # Reusable grid with autocomplete
-│   │   ├── GridToolbar.svelte       # Action buttons
+│   │   ├── DataGrid.svelte          # Grid with filtered dropdown overlay
 │   │   ├── HeaderTabs.svelte        # Tab navigation
-│   │   └── ui/                      # Shadcn components
+│   │   └── Sidebar.svelte           # Action toolbar
 │   ├── stores/
 │   │   ├── baseStore.svelte.ts      # Base store factory (DRY)
 │   │   ├── tabStore.svelte.ts       # Tab state management
 │   │   ├── estimateStore.svelte.ts  # Estimate data
 │   │   ├── infoSetupStore.svelte.ts # Info setup data
-│   │   └── bidItemStore.svelte.ts   # Bid items with autocomplete
+│   │   └── bidItemStore.svelte.ts   # Bid items with options
 │   └── services/
 │       ├── http.service.ts          # HTTP client
 │       ├── items.api.service.ts     # API operations
 │       └── api.config.ts            # Configuration
 └── routes/
     ├── +layout.svelte               # App layout
-    └── +page.svelte                 # Main page (minimal)
+    └── +page.svelte                 # Main container (smart)
 ```
 
-## 🎯 Key Features Explained
+## Key Implementation Details
 
-### Autocomplete (Bid Item Setup)
-The Bid Item Setup tab includes dropdown autocomplete for:
-- **Bid Item column**: 25+ predefined construction items
-- **Unit column**: Standard measurement units (LS, LF, CY, SY, etc.)
+### Filtered Dropdown Overlay
+The Bid Item column features a custom overlay that:
+- Shows all 29 options initially
+- Filters in real-time as you type
+- Displays "No results" when no matches found
+- Uses `$derived` for reactive filtering
+- Positioned with fixed coordinates below editing cell
 
-Implementation uses `@revolist/revogrid-column-select` plugin with clean column configuration.
-
-### Tab-Based Data Views
-Each tab loads and manages its own data independently:
-- Switch tabs without losing data
-- Separate CRUD operations per tab
-- Optimized loading with Promise.all()
-
-### Svelte 5 Runes
-Modern reactive state management:
 ```typescript
-let data = $state<T[]>([]);           // Reactive state
-const activeTab = $derived(store.active); // Derived value
-$effect(() => { /* side effects */ });    // Effects
+const filteredOptions = $derived(() => {
+  if (!searchTerm.trim()) return overlayOptions;
+  const term = searchTerm.toLowerCase();
+  return overlayOptions.filter(opt => 
+    opt.label.toLowerCase().includes(term) || 
+    opt.value.toLowerCase().includes(term)
+  );
+});
 ```
 
-## 🔧 Customization
-
-### Add a New Tab Type
-1. Create store: `src/lib/stores/yourStore.svelte.ts`
-2. Define interface and columns
-3. Add to `tabStore.TABS`
-4. Update `+page.svelte` derived values
-
-### Modify Autocomplete Options
-```typescript
-// src/lib/stores/bidItemStore.svelte.ts
-export const BID_ITEM_OPTIONS = [
-  'Your Item 1',
-  'Your Item 2',
-  // ...
-].map(label => ({ label, value: label }));
-```
-
-### Change API Endpoint
-```typescript
-// src/lib/services/api.config.ts
-export const API_CONFIG = {
-  BASE_URL: 'https://your-api.com',
-  ENDPOINTS: { ITEMS: '/your-endpoint' }
-};
-```
-
-## 📋 Available Scripts
-
-```bash
-pnpm dev          # Start dev server
-pnpm build        # Build for production
-pnpm preview      # Preview production build
-pnpm check        # Type check
-pnpm lint         # Lint code
-pnpm format       # Format code
-```
-
-## Architecture Highlights
-
-### DRY (Don't Repeat Yourself)
-- `createDataStore<T>()` factory for all stores
-- `DataGrid.svelte` reusable component
-- Shared error handling utilities
-
-### SOLID Principles
-- **Single Responsibility**: Each store handles one data type
-- **Open/Closed**: Extend base store without modification
-- **Dependency Inversion**: Components depend on interfaces
-
-### KISS (Keep It Simple)
-- Minimal component hierarchy
-- Clear separation of concerns
-- No over-engineering
-
-## Learn More
-
-- [SvelteKit 5 Docs](https://svelte.dev/docs/kit)
-- [RevoGrid Docs](https://revolist.github.io/revogrid/)
-- [Shadcn-Svelte](https://www.shadcn-svelte.com/)
+### Svelte 5 Best Practices
+- **`$state`** - For reactive local state
+- **`$derived`** - For computed values (replaces `$:`)
+- **`$props`** - For component props with destructuring
+- **`$effect`** - For side effects (replaces `$:` with side effects)
+- No more `$:` reactive statements in Svelte 5
 
 ## Demo
 https://svelte-5-revo-grid-demo.netlify.app/
