@@ -27,6 +27,17 @@
 	let overlayLabel = $state(''); // kept for backward minimal text, no longer shown
 	let overlayEl = $state<HTMLDivElement | null>(null);
 	let overlayOptions = $state<Array<{ label: string; value: string }>>([]);
+	let searchTerm = $state('');
+
+	// Filtered options based on search term
+	const filteredOptions = $derived(() => {
+		if (!searchTerm.trim()) return overlayOptions;
+		const term = searchTerm.toLowerCase();
+		return overlayOptions.filter(opt => 
+			opt.label.toLowerCase().includes(term) || 
+			opt.value.toLowerCase().includes(term)
+		);
+	});
 
 	function getCellElement(rowIndex: number, colIndex: number): HTMLElement | null {
 		if (!gridRef) return null;
@@ -181,6 +192,7 @@ onDestroy(() => {
 			if (overlayIsDropdown) {
 				overlayLabel = 'Select Bid Item';
 				overlayOptions = BID_ITEM_OPTIONS;
+				searchTerm = ''; // Reset search term
 				
 				console.log('>>> SETTING OVERLAY: options count=', overlayOptions.length);
 				
@@ -189,6 +201,24 @@ onDestroy(() => {
 					positionOverlayForCell(r, c);
 					overlayVisible = true;
 					console.log('>>> OVERLAY STATE: visible=', overlayVisible, 'left=', overlayLeft, 'top=', overlayTop);
+					
+					// Listen to input changes to update search term
+					const inputEl = document.activeElement as HTMLInputElement;
+					if (inputEl && ('value' in inputEl)) {
+						searchTerm = inputEl.value || '';
+						
+						const handleInput = () => {
+							searchTerm = inputEl.value || '';
+						};
+						
+						inputEl.addEventListener('input', handleInput);
+						
+						// Cleanup when overlay closes
+						const cleanup = () => {
+							inputEl.removeEventListener('input', handleInput);
+						};
+						setTimeout(cleanup, 30000); // Auto-cleanup after 30s
+					}
 				}, 100);
 				
 				// Update position occasionally to reduce errors
@@ -279,7 +309,7 @@ onDestroy(() => {
 		{#if overlayVisible}
 			<div bind:this={overlayEl} class="dg-overlay" style={`position:fixed;left:${overlayLeft}px;top:${overlayTop}px;`}>
 				<ul class="dg-list" role="listbox" aria-label="Bid Items">
-					{#each overlayOptions as opt, idx (idx)}
+					{#each filteredOptions() as opt, idx (idx)}
 						<li
 							class="dg-option"
 							role="option"
@@ -290,6 +320,10 @@ onDestroy(() => {
 							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectOverlayOption(opt.value); } }}
 						>
 							{opt.label}
+						</li>
+					{:else}
+						<li class="dg-option dg-no-results">
+							No results
 						</li>
 					{/each}
 				</ul>
@@ -368,5 +402,16 @@ onDestroy(() => {
 
 	.grid-wrapper > .dg-overlay .dg-option:hover {
 		background: #f1f5f9; /* slate-100 */
+	}
+
+	.grid-wrapper > .dg-overlay .dg-no-results {
+		color: #94a3b8; /* slate-400 */
+		cursor: default;
+		font-style: italic;
+		pointer-events: none;
+	}
+
+	.grid-wrapper > .dg-overlay .dg-no-results:hover {
+		background: transparent;
 	}
 </style>
