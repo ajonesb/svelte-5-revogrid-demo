@@ -181,51 +181,55 @@
 					<h2 class="text-sm font-semibold text-gray-700 mb-3">
 						Activity Productivity Information and Options
 					</h2>
-					<div class="space-y-2">
-						<!-- First Row -->
-						<div class="grid grid-cols-4 gap-x-8 text-sm">
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Manhours</span>
-								<input type="text" value="184.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
+					<div class="flex items-start gap-6">
+						<!-- Left side - two rows -->
+						<div class="flex-1 space-y-2">
+							<!-- First Row -->
+							<div class="flex items-center gap-4 text-sm">
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Manhours</span>
+									<input type="text" value="184.00" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Units/Hr</span>
+									<input type="text" value="99.3056" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Un/Shift</span>
+									<input type="text" value="893.7500" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Crew Labor</span>
+									<input type="text" value="5.00" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
 							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Units/Hr</span>
-								<input type="text" value="99.3056" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Un/Shift</span>
-								<input type="text" value="893.7500" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Crew Labor</span>
-								<input type="text" value="5.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							<!-- Second Row -->
+							<div class="flex items-center gap-4 text-sm">
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Unit/MH</span>
+									<input type="text" value="19.4293" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Crew$/Unit</span>
+									<input type="text" value="5.0671100" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Shifts</span>
+									<input type="text" value="4.0000" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-black text-xs whitespace-nowrap font-bold">Crew Equip</span>
+									<input type="text" value="3.00" class="border rounded px-2 py-1 text-center w-24" readonly />
+								</div>
 							</div>
 						</div>
-						<!-- Second Row -->
-						<div class="grid grid-cols-4 gap-x-8 text-sm">
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Unit/MH</span>
-								<input type="text" value="19.4293" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Crew$/Unit</span>
-								<input type="text" value="5.0671100" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Shifts</span>
-								<input type="text" value="4.0000" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
-							<div class="flex items-center gap-3">
-								<span class="text-gray-600 text-xs whitespace-nowrap">Crew Equip</span>
-								<input type="text" value="3.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
-							</div>
+						<!-- Right side - Lock Activity checkbox -->
+						<div class="flex items-center">
+							<label class="flex items-center gap-2 text-xs text-black font-bold whitespace-nowrap">
+								<input type="checkbox" id="lockActivity" class="rounded" />
+								<span>Lock Activity</span>
+							</label>
 						</div>
-					</div>
-					<div class="mt-3">
-						<label class="flex items-center gap-2 text-xs text-gray-600">
-							<input type="checkbox" id="lockActivity" class="rounded" />
-							<span>Lock Activity</span>
-						</label>
 					</div>
 				</div>
 
