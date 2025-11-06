@@ -4,10 +4,11 @@ Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and
 
 ## Features
 
-### Three Data Views
+### Four Data Views
 - **Estimate List** - Manage project estimates
 - **Information Setup** - Configure project information
 - **Bid Item Setup** - Manage bid items with **real-time filtered dropdowns**
+- **Estimate Entry** - Resource spreadsheet with color-coded cells and live calculations
 
 ### Excel-like Experience
 - Inline editing with type-to-filter dropdowns
@@ -15,6 +16,8 @@ Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and
 - Add/Delete/Clear operations
 - Loading & error states
 - "No results" feedback
+- Live formula recalculation
+- Color-coded resource cells
 
 ### Clean Architecture
 - **DRY** - Reusable base store and components
@@ -52,11 +55,17 @@ Clean, minimal data table implementation with **SvelteKit 5**, **RevoGrid**, and
    - Reactive with Svelte 5 runes
    - Manage CRUD operations for each tab
 
-2. **Tab Store** (`tabStore`)
+2. **Estimate Entry Store** (`estimateEntryStore`)
+   - Custom store for spreadsheet data
+   - Live formula recalculation
+   - Manages 20 mock resource rows
+   - Calculates summary totals
+
+3. **Tab Store** (`tabStore`)
    - Manages active tab state
    - Used by `HeaderTabs` and `+page.svelte`
 
-3. **Static Exports** (`BID_ITEM_OPTIONS`, `ESTIMATE_COLUMNS`, etc.)
+4. **Static Exports** (`BID_ITEM_OPTIONS`, `ESTIMATE_COLUMNS`, etc.)
    - Non-reactive reference data
    - Imported directly (no `$` prefix needed)
 
@@ -100,6 +109,8 @@ src/
 ├── lib/
 │   ├── components/
 │   │   ├── DataGrid.svelte          # Grid with filtered dropdown overlay
+│   │   ├── EstimateDataGrid.svelte  # Estimate Entry spreadsheet grid
+│   │   ├── SummaryTotals.svelte     # Estimate Entry footer totals
 │   │   ├── HeaderTabs.svelte        # Tab navigation
 │   │   └── Sidebar.svelte           # Action toolbar
 │   ├── stores/
@@ -107,7 +118,15 @@ src/
 │   │   ├── tabStore.svelte.ts       # Tab state management
 │   │   ├── estimateStore.svelte.ts  # Estimate data
 │   │   ├── infoSetupStore.svelte.ts # Info setup data
-│   │   └── bidItemStore.svelte.ts   # Bid items with options
+│   │   ├── bidItemStore.svelte.ts   # Bid items with options
+│   │   └── estimateEntryStore.svelte.ts # Estimate Entry spreadsheet store
+│   ├── assets/
+│   │   └── mock/
+│   │       └── estimate.rows.ts     # 20 mock resource rows
+│   ├── ui/
+│   │   └── tokens.ts                # Color tokens for resource codes
+│   ├── utils/
+│   │   └── formulas.ts              # Calculation functions
 │   └── services/
 │       ├── http.service.ts          # HTTP client
 │       ├── items.api.service.ts     # API operations
@@ -118,6 +137,47 @@ src/
 ```
 
 ## Key Implementation Details
+
+### Estimate Entry Data Flow
+
+**Simple chain from mock data to display:**
+
+1. **Mock Data** (`src/lib/assets/mock/estimate.rows.ts`)
+   - 20 ResourceRow objects with sample data
+   - Includes resource codes (2xxx, 3xxx, 4xxx, 5xxx, 8xxx, 9xxx, letters)
+
+2. **Store** (`src/lib/stores/estimateEntryStore.svelte.ts`)
+   - Imports mock data
+   - Stores in `$state` with Svelte 5 runes
+   - Handles live recalculation when cells edited
+   - Calculates summary totals
+
+3. **Page** (`src/routes/+page.svelte`)
+   - Calls `initEstimateStore()` on mount to load mock data
+   - Gets rows via `estimateEntryStore.rows`
+   - Passes rows to grid component as props
+   - **Activity Productivity data is hardcoded HTML** (not from store)
+
+4. **Grid** (`src/lib/components/EstimateDataGrid.svelte`)
+   - Receives rows as prop
+   - Displays in RevoGrid with color-coded cells
+   - 16px vertical color bars based on resource code
+   - Emits changes back to page
+
+**Flow:** `Mock Data → Store → Page → Grid Component`
+
+### Estimate Entry Features
+- Color-coded resource cells (green, dark-green, gray, dark-gray, blue)
+- 16px x 32px vertical color bars in separate column
+- Live formula recalculation:
+  - `adjQuantity = quantity × (1 + wastePct)`
+  - `totalCost = adjQuantity × unitCost × (1 + taxPct)`
+  - `grossPrice = totalCost × 1.18`
+  - `salesPrice = grossPrice`
+- Summary totals footer
+- Narrow fixed-width columns
+- Activity Productivity section (hardcoded values)
+- Currency and percentage formatting
 
 ### Filtered Dropdown Overlay
 The Bid Item column features a custom overlay that:
