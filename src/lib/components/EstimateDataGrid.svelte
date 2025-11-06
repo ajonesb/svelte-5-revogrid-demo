@@ -3,8 +3,9 @@
 	import { browser } from '$app/environment';
 	import type { ColumnRegular } from '@revolist/revogrid';
 	import type { ResourceRow } from '$lib/assets/mock/estimate.rows';
-	import { formatCurrency } from '$lib/utils/formulas';
 	import { colors } from '$lib/ui/tokens';
+	import { formatCurrency, formatPercent } from '$lib/utils/formulas';
+	import '$lib/styles/revogrid.css';
 
 	interface Props {
 		data: ResourceRow[];
@@ -242,42 +243,3 @@
 		<p class="text-gray-500">Loading grid...</p>
 	</div>
 {/if}
-
-<style>
-	.estimate-grid-wrapper {
-		width: 100%;
-        height: 100vh;
-	}
-
-	:global(.estimate-grid-wrapper revo-grid) {
-		height: 100% !important;
-		--rgRow-border: 1px solid #e5e7eb;
-		--rgCell-border: 1px solid #e5e7eb;
-	}
-
-	:global(.estimate-grid-wrapper .rgCell) {
-		font-size: 12px !important;
-		padding: 4px 8px !important;
-		border-right: 1px solid #e5e7eb !important;
-		background-color: transparent !important;
-	}
-
-	:global(.estimate-grid-wrapper .rgCell.disabled) {
-		background-color: transparent !important;
-	}
-
-	:global(.estimate-grid-wrapper .rgHeaderCell) {
-		font-weight: 600 !important;
-		font-size: 11px !important;
-		background-color: #fafafa !important;
-		color: #52525b !important;
-		border-bottom: 1px solid #e4e4e7 !important;
-		text-transform: none !important;
-		padding: 8px !important;
-	}
-
-	/* Hide attribution */
-	:global(revogr-attribution) {
-		display: none !important;
-	}
-</style>
