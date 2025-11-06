@@ -19,11 +19,15 @@
 		addBidItem,
 		BID_ITEM_COLUMNS
 	} from '$lib/stores/bidItemStore.svelte';
+	import { estimateEntryStore, initEstimateStore, updateCell } from '$lib/stores/estimateEntryStore.svelte';
 	import DataGrid from '$lib/components/DataGrid.svelte';
+	import EstimateDataGrid from '$lib/components/EstimateDataGrid.svelte';
+	import SummaryTotals from '$lib/components/SummaryTotals.svelte';
 
 	onMount(async () => {
 		// Load all data on mount
 		await Promise.all([loadEstimates(), loadInfoSetup(), loadBidItems()]);
+		initEstimateStore();
 	});
 
 	// Reactive values based on active tab
@@ -33,7 +37,9 @@
 			? estimateStore
 			: activeTab === 'information-setup'
 				? infoSetupStore
-				: bidItemStore
+				: activeTab === 'estimate-entry'
+					? null
+					: bidItemStore
 	);
 	const currentColumns = $derived(
 		activeTab === 'estimate-list'
@@ -42,27 +48,37 @@
 				? INFO_SETUP_COLUMNS
 				: BID_ITEM_COLUMNS
 	);
-	const currentData = $derived(currentStore.data);
-	const currentLoading = $derived(currentStore.loading);
-	const currentError = $derived(currentStore.error);
-	const selectionCount = $derived(currentStore.selectedIds.size);
+	const currentData = $derived(currentStore?.data ?? []);
+	const currentLoading = $derived(currentStore?.loading ?? false);
+	const currentError = $derived(currentStore?.error ?? null);
+	const selectionCount = $derived(currentStore?.selectedIds.size ?? 0);
+
+	// Estimate Entry specific
+	const estimateRows = $derived(estimateEntryStore.rows);
+	const summaryTotals = $derived(estimateEntryStore.summaryTotals);
+
+	function handleEstimateCellChange(rowId: number, prop: any, value: any) {
+		updateCell(rowId, prop, value);
+	}
 
 	// Actions
 	function handleAdd() {
 		console.log('[ACTION] Adding new row to:', activeTab);
-		if (activeTab === 'estimate-list') addEstimate();
-		else if (activeTab === 'information-setup') addInfoSetupItem();
-		else addBidItem();
+		if (currentStore) {
+			if (activeTab === 'estimate-list') addEstimate();
+			else if (activeTab === 'information-setup') addInfoSetupItem();
+			else addBidItem();
+		}
 	}
 
 	function handleDelete() {
 		console.log('[ACTION] Deleting selected rows from:', activeTab, 'Count:', selectionCount);
-		currentStore.deleteSelected();
+		if (currentStore) currentStore.deleteSelected();
 	}
 
 	function handleClear() {
 		console.log('[ACTION] Clearing all data from:', activeTab);
-		currentStore.clearAll();
+		if (currentStore) currentStore.clearAll();
 	}
 
 	function handleEdit(event: any) {
@@ -71,15 +87,12 @@
 			detail: event.detail
 		});
 
+		if (!currentStore) return;
+
 		const detail = event.detail;
 		if (detail && detail.data !== undefined) {
 			// RevoGrid afteredit structure: { prop, model, data (new array), column, rowIndex }
 			const updatedData = detail.data;
-
-			// Don't auto-sort on every keystroke in Bid Item Setup
-			// Sorting can be disruptive while user is typing
-			// Users can manually sort if needed, or we can sort on tab change
-			const needsSort = false;
 
 			console.log('[ROW UPDATE]', {
 				tab: activeTab,
@@ -93,6 +106,7 @@
 
 			// Use setTimeout to check for empty row after the edit is complete and DOM updates
 			setTimeout(() => {
+				if (!currentStore) return;
 				const data = currentStore.data;
 				if (data.length > 0) {
 					const lastRow: any = data[data.length - 1];
@@ -130,7 +144,7 @@
 			tab: activeTab,
 			rowCount: event.detail.source?.length
 		});
-		currentStore.setData(event.detail.source);
+		if (currentStore) currentStore.setData(event.detail.source);
 	}
 
 	async function handleReload() {
@@ -158,7 +172,76 @@
 
 <div class=" h-screen flex flex-col">
 	<div class="flex-1">
-		{#if currentError}
+		{#if activeTab === 'estimate-entry'}
+			<!-- Estimate Entry Tab -->
+			<div class="h-full flex flex-col bg-gray-50">
+				<!-- Top Info Card -->
+				<div class="bg-white border-b px-6 py-3">
+					<!-- Activity Productivity Information and Options -->
+					<h2 class="text-sm font-semibold text-gray-700 mb-3">
+						Activity Productivity Information and Options
+					</h2>
+					<div class="space-y-2">
+						<!-- First Row -->
+						<div class="grid grid-cols-4 gap-x-8 text-sm">
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Manhours</span>
+								<input type="text" value="184.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Units/Hr</span>
+								<input type="text" value="99.3056" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Un/Shift</span>
+								<input type="text" value="893.7500" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Crew Labor</span>
+								<input type="text" value="5.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+						</div>
+						<!-- Second Row -->
+						<div class="grid grid-cols-4 gap-x-8 text-sm">
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Unit/MH</span>
+								<input type="text" value="19.4293" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Crew$/Unit</span>
+								<input type="text" value="5.0671100" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Shifts</span>
+								<input type="text" value="4.0000" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="text-gray-600 text-xs whitespace-nowrap">Crew Equip</span>
+								<input type="text" value="3.00" class="border rounded px-2 py-1 text-center flex-1" readonly />
+							</div>
+						</div>
+					</div>
+					<div class="mt-3">
+						<label class="flex items-center gap-2 text-xs text-gray-600">
+							<input type="checkbox" id="lockActivity" class="rounded" />
+							<span>Lock Activity</span>
+						</label>
+					</div>
+				</div>
+
+				<!-- Data Grid -->
+				<div class="flex-1 bg-white">
+					<EstimateDataGrid data={estimateRows} onCellChange={handleEstimateCellChange} />
+				</div>
+
+				<!-- Summary Totals -->
+				<SummaryTotals
+					totalCost={summaryTotals.totalCost}
+					grossPrice={summaryTotals.grossPrice}
+					salesPrice={summaryTotals.salesPrice}
+				/>
+			</div>
+		{:else if currentError}
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
 					<p class="text-red-500 mb-4">{currentError}</p>

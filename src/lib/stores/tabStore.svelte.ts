@@ -3,7 +3,7 @@
  * Simple, single-responsibility state management
  */
 
-export type TabId = 'estimate-list' | 'information-setup' | 'bid-item-setup';
+export type TabId = 'estimate-list' | 'information-setup' | 'bid-item-setup' | 'estimate-entry';
 
 export interface Tab {
 	id: TabId;
@@ -13,10 +13,11 @@ export interface Tab {
 export const TABS: Tab[] = [
 	{ id: 'estimate-list', label: 'Estimate List' },
 	{ id: 'information-setup', label: 'Information Setup' },
-	{ id: 'bid-item-setup', label: 'Bid Item Setup' }
+	{ id: 'bid-item-setup', label: 'Bid Item Setup' },
+	{ id: 'estimate-entry', label: 'Estimate Entry' }
 ];
 
-let activeTab = $state<TabId>('bid-item-setup');
+let activeTab = $state<TabId>('estimate-entry');
 
 export const tabStore = {
 	get active() {
