@@ -7,7 +7,7 @@
 	import { commitEdit, isDropdownColumn, getEditCellIndices } from '$lib/utils/gridEdit';
 	import '$lib/styles/revogrid.css';
 
-	interface Props {
+	interface DataGridProps {
 		data: any[];
 		columns: ColumnRegular[];
 		onEdit?: (event: any) => void;
@@ -15,7 +15,7 @@
 		onCellChange?: (event: any) => void;
 	}
 
-	let { data, columns, onEdit, onSourceSet }: Props = $props();
+	let { data, columns, onEdit, onSourceSet }: DataGridProps = $props();
 	let gridRef: any = $state(null);
 	let isEditing = $state(false);
 	let currentEditCell: any = $state(null);
