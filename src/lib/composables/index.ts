@@ -5,3 +5,4 @@
 
 export { useRevoGrid } from './useRevoGrid.svelte';
 export { useDropdownOverlay } from './useDropdownOverlay.svelte';
+export { useFormulaCalculator } from './useFormulaCalculator.svelte';

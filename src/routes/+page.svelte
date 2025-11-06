@@ -17,7 +17,10 @@
 		bidItemStore,
 		loadBidItems,
 		addBidItem,
-		BID_ITEM_COLUMNS
+		BID_ITEM_COLUMNS,
+		applyFormulas,
+		applyFormulasToAll,
+		type BidItem
 	} from '$lib/stores/bidItemStore.svelte';
 	import { estimateEntryStore, initEstimateStore, updateCell } from '$lib/stores/estimateEntryStore.svelte';
 	import DataGrid from '$lib/components/DataGrid.svelte';
@@ -92,7 +95,7 @@
 		const detail = event.detail;
 		if (detail && detail.data !== undefined) {
 			// RevoGrid afteredit structure: { prop, model, data (new array), column, rowIndex }
-			const updatedData = detail.data;
+			let updatedData = detail.data;
 
 			console.log('[ROW UPDATE]', {
 				tab: activeTab,
@@ -101,6 +104,12 @@
 				newValue: detail.model,
 				dataLength: updatedData.length
 			});
+
+			// Apply formulas if editing Bid Item Setup
+			if (activeTab === 'bid-item-setup') {
+				console.log('[FORMULA] Recalculating formulas for Bid Item Setup');
+				updatedData = applyFormulasToAll(updatedData as BidItem[]);
+			}
 
 			currentStore.setData(updatedData as any);
 
