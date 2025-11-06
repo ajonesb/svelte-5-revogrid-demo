@@ -67,15 +67,24 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		name: 'Bid Item Number',
 		size: 150,
 		readonly: false,
-		editor: 'text'
+		editor: 'text',
+		autoFocus: true
 	},
-	{ prop: 'description', name: 'Description', size: 300, readonly: false, editor: 'text' },
+	{ 
+		prop: 'description', 
+		name: 'Description', 
+		size: 300, 
+		readonly: false, 
+		editor: 'text',
+		autoFocus: true
+	},
 	{ 
 		prop: 'bidQuantity', 
 		name: 'Bid Qty', 
 		size: 100, 
 		readonly: false, 
 		editor: 'text',
+		autoFocus: true,
 		cellProperties: () => ({ style: { backgroundColor: '#fef3c7' } }) // Yellow - editable
 	},
 	{
@@ -83,7 +92,8 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		name: 'Unit',
 		size: 80,
 		readonly: false,
-		editor: 'text'
+		editor: 'text',
+		autoFocus: true
 	},
 	{ 
 		prop: 'takeoffQuantity', 
@@ -91,6 +101,7 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		size: 120, 
 		readonly: false, 
 		editor: 'text',
+		autoFocus: true,
 		cellProperties: () => ({ style: { backgroundColor: '#fef3c7' } }) // Yellow - editable
 	},
 	{ 
@@ -99,6 +110,7 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		size: 110, 
 		readonly: false, 
 		editor: 'text',
+		autoFocus: true,
 		cellProperties: () => ({ style: { backgroundColor: '#fef3c7' } }) // Yellow - editable
 	},
 	{ 
@@ -122,7 +134,14 @@ export const BID_ITEM_COLUMNS: ColumnRegular[] = [
 		readonly: true,
 		cellProperties: () => ({ style: { backgroundColor: '#dbeafe' } }) // Blue - calculated
 	},
-	{ prop: 'clientNo', name: 'Client #', size: 100, readonly: false, editor: 'text' }
+	{ 
+		prop: 'clientNo', 
+		name: 'Client #', 
+		size: 100, 
+		readonly: false, 
+		editor: 'text',
+		autoFocus: true
+	}
 ];
 
 const store = createDataStore<BidItem>();

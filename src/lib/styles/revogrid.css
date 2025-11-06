@@ -162,3 +162,37 @@ revogr-attribution,
 	padding: var(--rg-spacing-lg) !important;
 }
 
+/* ============================================
+   Mobile Optimization
+   ============================================ */
+
+/* Ensure input fields get proper focus and keyboard on mobile */
+revo-grid .rgCell input,
+revo-grid .edit-input input,
+revo-grid input[type="text"],
+revo-grid input[type="number"] {
+	-webkit-user-select: text !important;
+	user-select: text !important;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+	touch-action: manipulation;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+	revo-grid {
+		-webkit-overflow-scrolling: touch;
+		touch-action: pan-x pan-y;
+	}
+
+	revo-grid .rgCell {
+		min-height: 44px; /* iOS minimum touch target */
+	}
+
+	/* Ensure inputs are visible and focusable on mobile */
+	revo-grid .rgCell input {
+		font-size: 16px !important; /* Prevent iOS zoom on focus */
+		-webkit-appearance: none;
+		appearance: none;
+	}
+}
+

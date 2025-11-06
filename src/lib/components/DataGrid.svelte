@@ -152,6 +152,7 @@
 			resize={true}
 			canFocus={true}
 			useClipboard={true}
+			autoFocus={true}
 			on:beforeeditstart={handleBeforeEditStart}
 			on:beforeedit={handleBeforeEdit}
 			on:afteredit={handleAfterEdit}
