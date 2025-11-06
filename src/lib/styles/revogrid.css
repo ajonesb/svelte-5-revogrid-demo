@@ -1,0 +1,90 @@
+/**
+ * RevoGrid Custom Styles
+ * Centralized styles for RevoGrid components and dropdown overlays
+ */
+
+/* Grid Container */
+revo-grid {
+	--rgCell-padding: 0 0.5rem;
+	height: 100vh !important;
+}
+
+/* Cell Padding */
+.rgCell,
+revo-grid .rgCell {
+	padding-left: 0.5rem !important;
+	padding-right: 0.5rem !important;
+}
+
+/* Header Cells */
+.rgHeaderCell,
+revo-grid .rgHeaderCell {
+	font-weight: 600 !important;
+	color: #52525b !important; /* zinc-600 */
+	text-transform: none !important;
+	background-color: #fafafa !important; /* zinc-50 */
+	border-bottom: 1px solid #e4e4e7 !important; /* zinc-200 */
+}
+
+/* Hide RevoGrid attribution */
+revogr-attribution,
+.attribution,
+[class*="attribution"] {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	height: 0 !important;
+	width: 0 !important;
+	position: absolute !important;
+	pointer-events: none !important;
+}
+
+/* ============================================
+   Dropdown Overlay Styles
+   ============================================ */
+
+/* Dropdown Overlay */
+.dropdown-overlay {
+	position: fixed;
+	background-color: #ffffff;
+	border: 1px solid #e5e7eb; /* gray-200 */
+	border-radius: 0.5rem; /* rounded-lg */
+	box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+	pointer-events: auto;
+	z-index: 9999;
+	min-width: 220px;
+	max-height: 220px;
+	overflow-y: auto;
+	padding: 4px 0;
+}
+
+.dropdown-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.dropdown-option {
+	padding: 6px 10px;
+	font-size: 12px;
+	line-height: 1.2;
+	color: #0f172a; /* slate-900 */
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.dropdown-option:hover {
+	background-color: #f1f5f9; /* slate-100 */
+}
+
+.dropdown-option.no-results {
+	color: #94a3b8; /* slate-400 */
+	cursor: default;
+	font-style: italic;
+	pointer-events: none;
+}
+
+.dropdown-option.no-results:hover {
+	background-color: transparent;
+}
+

@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import type { ColumnRegular } from '@revolist/revogrid';
 	import { BID_ITEM_OPTIONS } from '$lib/stores/bidItemStore.svelte';
+	import '$lib/styles/revogrid.css';
 
 	interface Props {
 		data: any[];
@@ -288,7 +289,7 @@ onDestroy(() => {
 </script>
 
 {#if mounted && RevoGrid}
-	<div class="grid-wrapper" style="position: relative; height: 100%; overflow: auto;">
+	<div class="grid-wrapper">
 		<RevoGrid
 			bind:this={gridRef}
 			source={data}
@@ -307,11 +308,15 @@ onDestroy(() => {
 		/>
 
 		{#if overlayVisible}
-			<div bind:this={overlayEl} class="dg-overlay" style={`position:fixed;left:${overlayLeft}px;top:${overlayTop}px;`}>
-				<ul class="dg-list" role="listbox" aria-label="Bid Items">
+			<div 
+				bind:this={overlayEl} 
+				class="dropdown-overlay" 
+				style="left: {overlayLeft}px; top: {overlayTop}px;"
+			>
+				<ul class="dropdown-list" role="listbox" aria-label="Bid Items">
 					{#each filteredOptions() as opt, idx (idx)}
 						<li
-							class="dg-option"
+							class="dropdown-option"
 							role="option"
 							aria-selected="false"
 							tabindex="0"
@@ -322,7 +327,7 @@ onDestroy(() => {
 							{opt.label}
 						</li>
 					{:else}
-						<li class="dg-option dg-no-results">
+						<li class="dropdown-option no-results">
 							No results
 						</li>
 					{/each}
@@ -337,81 +342,9 @@ onDestroy(() => {
 {/if}
 
 <style>
-	:global(revo-grid) {
-		--rgCell-padding: 0 0.5rem;
-		height: 100vh !important;
-	}
-
-	:global(.rgCell),
-	:global(revo-grid .rgCell) {
-		padding-left: 0.5rem !important;
-		padding-right: 0.5rem !important;
-	}
-
-	:global(.rgHeaderCell),
-	:global(revo-grid .rgHeaderCell) {
-		font-weight: 600 !important;
-		color: #52525b !important;
-		text-transform: none !important;
-		background-color: #fafafa !important;
-		border-bottom: 1px solid #e4e4e7 !important;
-	}
-
-	/* Hide RevoGrid attribution link */
-	:global(revogr-attribution),
-	:global(.attribution),
-	:global([class*="attribution"]) {
-		display: none !important;
-		visibility: hidden !important;
-		opacity: 0 !important;
-		height: 0 !important;
-		width: 0 !important;
-		position: absolute !important;
-		pointer-events: none !important;
-	}
-
-	/* Minimal overlay: tiny neutral pill under the editing cell */
-	.grid-wrapper > .dg-overlay,
-	.dg-overlay {
-		position: fixed;
-		background: #ffffff;
-		border: 1px solid #e5e7eb; /* gray-200 */
-		border-radius: 8px;
-		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0,0,0,0.06);
-		pointer-events: auto; /* interactive for selection */
-		z-index: 9999;
-		min-width: 220px;
-		max-height: 220px;
-		overflow: auto;
-		padding: 4px 0;
-	}
-
-	.grid-wrapper > .dg-overlay .dg-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	.grid-wrapper > .dg-overlay .dg-option {
-		padding: 6px 10px;
-		font-size: 12px;
-		line-height: 1.2;
-		color: #0f172a; /* slate-900 */
-		cursor: pointer;
-	}
-
-	.grid-wrapper > .dg-overlay .dg-option:hover {
-		background: #f1f5f9; /* slate-100 */
-	}
-
-	.grid-wrapper > .dg-overlay .dg-no-results {
-		color: #94a3b8; /* slate-400 */
-		cursor: default;
-		font-style: italic;
-		pointer-events: none;
-	}
-
-	.grid-wrapper > .dg-overlay .dg-no-results:hover {
-		background: transparent;
+	.grid-wrapper {
+		position: relative;
+		height: 100%;
 	}
 </style>
+
