@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { browser } from '$app/environment';
 	import type { ColumnRegular } from '@revolist/revogrid';
 	import { BID_ITEM_OPTIONS } from '$lib/stores/bidItemStore.svelte';
+	import { useRevoGrid } from '$lib/composables/useRevoGrid.svelte';
+	import { useDropdownOverlay } from '$lib/composables/useDropdownOverlay.svelte';
+	import { commitEdit, isDropdownColumn, getEditCellIndices } from '$lib/utils/gridEdit';
 	import '$lib/styles/revogrid.css';
 
 	interface Props {
@@ -14,155 +16,72 @@
 	}
 
 	let { data, columns, onEdit, onSourceSet }: Props = $props();
-	let RevoGrid: any = $state(null);
-	let mounted = $state(false);
 	let gridRef: any = $state(null);
 	let isEditing = $state(false);
 	let currentEditCell: any = $state(null);
 
-	// Minimal inline overlay state (no portaling)
-	let overlayVisible = $state(false);
-	let overlayLeft = $state(0);
-	let overlayTop = $state(0);
-	let overlayIsDropdown = $state(false);
-	let overlayLabel = $state(''); // kept for backward minimal text, no longer shown
-	let overlayEl = $state<HTMLDivElement | null>(null);
-	let overlayOptions = $state<Array<{ label: string; value: string }>>([]);
-	let searchTerm = $state('');
-
-	// Filtered options based on search term
-	const filteredOptions = $derived(() => {
-		if (!searchTerm.trim()) return overlayOptions;
-		const term = searchTerm.toLowerCase();
-		return overlayOptions.filter(opt => 
-			opt.label.toLowerCase().includes(term) || 
-			opt.value.toLowerCase().includes(term)
-		);
+	// Composables
+	const grid = useRevoGrid();
+	const overlay = useDropdownOverlay({ 
+		get gridRef() { return gridRef; },
+		onSelect: (value) => console.log('[OVERLAY] Selected:', value)
 	});
 
-	function getCellElement(rowIndex: number, colIndex: number): HTMLElement | null {
-		if (!gridRef) return null;
-		
-		try {
-			// Fallback: just use the currently focused input element (simplest and most reliable)
-			const activeInput = document.activeElement;
-			if (activeInput && (activeInput.tagName === 'INPUT' || activeInput.tagName === 'TEXTAREA')) {
-				return activeInput as HTMLElement;
-			}
-			
-			// If no active input, try to find the cell in shadow DOM
-			const gridElement = gridRef as any;
-			const searchRoot: any = gridElement.shadowRoot || document;
-			
-			if (searchRoot && typeof searchRoot.querySelector === 'function') {
-				const selectors = [
-					`.rgCell[data-rgcol="${colIndex}"][data-rgrow="${rowIndex}"]`,
-					`.rgCell[data-rgCol="${colIndex}"][data-rgRow="${rowIndex}"]`,
-				];
-				
-				for (const selector of selectors) {
-					const cell = searchRoot.querySelector(selector) as HTMLElement | null;
-					if (cell) return cell;
+	/**
+	 * Setup global click handler to commit edits
+	 */
+	function setupEditCommitHandler() {
+		document.addEventListener('mousedown', (e: MouseEvent) => {
+			if (isEditing) {
+				// Don't commit if clicking inside overlay
+				if (overlay.visible && overlay.element?.contains(e.target as Node)) {
+					return;
 				}
+				console.log('[GLOBAL CLICK] Committing edit due to outside click');
+				commitEdit();
 			}
-			
-			return null;
-		} catch (err) {
-			return null;
-		}
+		});
 	}
 
-	function positionOverlayForCell(rowIndex: number, colIndex: number) {
-		const cellEl = getCellElement(rowIndex, colIndex);
-		if (!cellEl) {
-			overlayVisible = false;
-			return;
-		}
+	/**
+	 * Setup overlay repositioning on scroll/resize
+	 */
+	function setupOverlayRepositioning() {
+		const reposition = () => {
+			if (!isEditing || !currentEditCell) return;
+			const { row, col } = getEditCellIndices(currentEditCell);
+			overlay.positionOverlay(row, col);
+		};
 		
-		const rect = cellEl.getBoundingClientRect();
+		window.addEventListener('scroll', reposition, true);
+		window.addEventListener('resize', reposition, true);
 		
-		// Use viewport coordinates (fixed positioning)
-		overlayLeft = Math.round(rect.left);
-		overlayTop = Math.round(rect.bottom + 4);
-		
-		// Hide if cell is outside viewport
-		const offscreen = rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth;
-		overlayVisible = !offscreen;
+		// Cleanup
+		return () => {
+			window.removeEventListener('scroll', reposition, true);
+			window.removeEventListener('resize', reposition, true);
+		};
 	}
 
 	onMount(async () => {
-		if (browser) {
-			try {
-				const module = await import('@revolist/svelte-datagrid');
-				// Get the RevoGrid component
-				RevoGrid = module.RevoGrid;
+		await grid.loadGrid();
+		
+		if (grid.mounted) {
+			setTimeout(setupEditCommitHandler, 500);
+			setupOverlayRepositioning();
+		}
+	});
 
-				// Check if it's a valid function/component
-				if (typeof RevoGrid !== 'function') {
-					console.error('[GRID INIT] Invalid RevoGrid component:', module);
-					return;
-				}
+	onDestroy(() => {
+		// Cleanup handled by setupOverlayRepositioning
+	});
 
-				mounted = true;
-				console.log('[GRID INIT] Grid mounted successfully');
-
-				// Add a global click listener to commit edits when clicking outside edit cell
-				setTimeout(() => {
-					if (gridRef) {
-						const gridElement = gridRef;
-						document.addEventListener('mousedown', (e: MouseEvent) => {
-							if (isEditing) {
-								// If click happens inside the overlay, don't auto-commit yet
-								if (overlayVisible && overlayEl && overlayEl.contains(e.target as Node)) {
-									return;
-								}
-								console.log('[GLOBAL CLICK] Committing edit due to outside click');
-								// Simulate pressing Enter to commit the edit
-								const enterEvent = new KeyboardEvent('keydown', {
-									key: 'Enter',
-									code: 'Enter',
-									keyCode: 13,
-									which: 13,
-									bubbles: true
-								});
-								const activeElement = document.activeElement;
-								if (activeElement) {
-									activeElement.dispatchEvent(enterEvent);
-								}
-							}
-						});
-			}
-		}, 500);
-
-		// Reposition overlay while editing
-		const reposition = () => {
-			if (!isEditing || !currentEditCell) return;
-			const r = currentEditCell?.rowIndex ?? currentEditCell?.row ?? 0;
-			const c = currentEditCell?.colIndex ?? currentEditCell?.col ?? 0;
-			positionOverlayForCell(r, c);
-		};
-		window.addEventListener('scroll', reposition, true);
-		window.addEventListener('resize', reposition, true);
-	} catch (error) {
-		console.error('[GRID INIT] Failed to load RevoGrid:', error);
-	}
-	}
-});
-
-onDestroy(() => {
-	// Clean up event listeners - only in browser
-	if (browser) {
-		window.removeEventListener('scroll', () => {}, true);
-		window.removeEventListener('resize', () => {}, true);
-	}
-});
-
+	// Event Handlers
 	function handleAfterEdit(event: any) {
 		console.log('[AFTER EDIT] Full event:', event.detail);
 		isEditing = false;
 		currentEditCell = null;
-		overlayVisible = false;
-		overlayIsDropdown = false;
+		overlay.hide();
 		if (onEdit) onEdit(event);
 	}
 
@@ -173,7 +92,6 @@ onDestroy(() => {
 
 	function handleBeforeEdit(event: any) {
 		console.log('[BEFORE EDIT] Starting edit:', event.detail);
-		// Allow the edit - don't prevent default
 		return true;
 	}
 
@@ -181,77 +99,35 @@ onDestroy(() => {
 		console.log('[BEFORE EDIT START]:', event.detail);
 		isEditing = true;
 		currentEditCell = event.detail;
+		
 		try {
-			const r = event.detail?.rowIndex ?? event.detail?.row ?? 0;
-			const c = event.detail?.colIndex ?? event.detail?.col ?? 0;
-			const col = columns?.[c];
-			// Only show overlay for Bid Item column to indicate dropdown
-			overlayIsDropdown = (col?.prop === 'bidItem') || /bid\s*item/i.test(String(col?.name ?? ''));
+			const { row, col } = getEditCellIndices(event.detail);
+			const column = columns?.[col];
 			
-			console.log('>>> OVERLAY CHECK: isDropdown=', overlayIsDropdown, 'col=', col?.prop);
+			// Check if this column should show dropdown
+			const showDropdown = isDropdownColumn(column?.prop, column?.name);
 			
-			if (overlayIsDropdown) {
-				overlayLabel = 'Select Bid Item';
-				overlayOptions = BID_ITEM_OPTIONS;
-				searchTerm = ''; // Reset search term
-				
-				console.log('>>> SETTING OVERLAY: options count=', overlayOptions.length);
-				
-				// Position immediately
-				setTimeout(() => {
-					positionOverlayForCell(r, c);
-					overlayVisible = true;
-					console.log('>>> OVERLAY STATE: visible=', overlayVisible, 'left=', overlayLeft, 'top=', overlayTop);
-					
-					// Listen to input changes to update search term
-					const inputEl = document.activeElement as HTMLInputElement;
-					if (inputEl && ('value' in inputEl)) {
-						searchTerm = inputEl.value || '';
-						
-						const handleInput = () => {
-							searchTerm = inputEl.value || '';
-						};
-						
-						inputEl.addEventListener('input', handleInput);
-						
-						// Cleanup when overlay closes
-						const cleanup = () => {
-							inputEl.removeEventListener('input', handleInput);
-						};
-						setTimeout(cleanup, 30000); // Auto-cleanup after 30s
-					}
-				}, 100);
-				
-				// Update position occasionally to reduce errors
-				const keepVisible = () => {
-					if (isEditing && overlayIsDropdown) {
-						positionOverlayForCell(r, c);
-					}
-				};
-				
-				const intervalId = setInterval(keepVisible, 500);
-				setTimeout(() => clearInterval(intervalId), 30000);
+			console.log('>>> OVERLAY CHECK: isDropdown=', showDropdown, 'col=', column?.prop);
+			
+			if (showDropdown) {
+				console.log('>>> SETTING OVERLAY: options count=', BID_ITEM_OPTIONS.length);
+				overlay.show(row, col, BID_ITEM_OPTIONS);
 			} else {
-				overlayVisible = false;
+				overlay.hide();
 			}
 		} catch (err) {
 			console.error('[OVERLAY ERROR]:', err);
 		}
+		
 		return true;
 	}
 
 	function handleCellFocus(event: any) {
 		console.log('[CELL FOCUS] Cell focused:', event.detail);
-		// If we're currently editing and about to focus a different cell, commit the edit
 		if (isEditing && gridRef) {
 			console.log('[CELL FOCUS] Committing previous edit before focus change');
-			// Trigger the grid to commit/save the current edit
 			try {
-				// Try to programmatically end the edit
-				const editEvent = new CustomEvent('keydown', {
-					detail: { key: 'Enter' }
-				});
-				gridRef.dispatchEvent?.(editEvent);
+				commitEdit();
 			} catch (e) {
 				console.log('[CELL FOCUS] Could not trigger commit:', e);
 			}
@@ -263,34 +139,11 @@ onDestroy(() => {
 		if (onEdit) onEdit(event);
 	}
 
-	function selectOverlayOption(value: string) {
-		// Try to write into active editor input and commit with Enter
-		const el = document.activeElement as HTMLInputElement | null;
-		try {
-			if (el && ('value' in el)) {
-				el.focus();
-				(el as HTMLInputElement).value = value;
-				el.dispatchEvent(new InputEvent('input', { bubbles: true }));
-				requestAnimationFrame(() => {
-					const enterEvent = new KeyboardEvent('keydown', {
-						key: 'Enter',
-						code: 'Enter',
-						keyCode: 13,
-						which: 13,
-						bubbles: true
-					});
-					el.dispatchEvent(enterEvent);
-				});
-			}
-		} finally {
-			overlayVisible = false;
-		}
-	}
 </script>
 
-{#if mounted && RevoGrid}
+{#if grid.mounted && grid.component}
 	<div class="grid-wrapper">
-		<RevoGrid
+		<grid.component
 			bind:this={gridRef}
 			source={data}
 			{columns}
@@ -307,22 +160,22 @@ onDestroy(() => {
 			on:beforerangeedit={handleBeforeEdit}
 		/>
 
-		{#if overlayVisible}
+		{#if overlay.visible}
 			<div 
-				bind:this={overlayEl} 
+				bind:this={overlay.element} 
 				class="dropdown-overlay" 
-				style="left: {overlayLeft}px; top: {overlayTop}px;"
+				style="left: {overlay.left}px; top: {overlay.top}px;"
 			>
 				<ul class="dropdown-list" role="listbox" aria-label="Bid Items">
-					{#each filteredOptions() as opt, idx (idx)}
+					{#each overlay.filteredOptions() as opt, idx (idx)}
 						<li
 							class="dropdown-option"
 							role="option"
 							aria-selected="false"
 							tabindex="0"
-							onmousedown={(e) => { e.preventDefault(); selectOverlayOption(opt.value); }}
-							onclick={() => selectOverlayOption(opt.value)}
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectOverlayOption(opt.value); } }}
+							onmousedown={(e) => { e.preventDefault(); overlay.selectOption(opt.value); }}
+							onclick={() => overlay.selectOption(opt.value)}
+							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); overlay.selectOption(opt.value); } }}
 						>
 							{opt.label}
 						</li>
@@ -334,6 +187,10 @@ onDestroy(() => {
 				</ul>
 			</div>
 		{/if}
+	</div>
+{:else if grid.error}
+	<div class="flex items-center justify-center h-full">
+		<p class="text-red-500">{grid.error}</p>
 	</div>
 {:else}
 	<div class="flex items-center justify-center h-full">
